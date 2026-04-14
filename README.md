@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# go out already
 
-## Getting Started
+> Central Ohio events, all in one place.
 
-First, run the development server:
+A personal web app that automatically crawls the internet nightly for local events across the Central Ohio region, presents them in a responsive filterable interface, and enables bulk-adding selected events to Google Calendar.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend + API | Next.js 14 (App Router) |
+| Auth | NextAuth.js v5 + Google OAuth |
+| Database | PostgreSQL (Railway/Supabase) |
+| ORM | Prisma |
+| Scraping (dynamic) | Playwright (headless Chromium) |
+| Scraping (static) | Axios + Cheerio |
+| ICS/iCal | node-ical |
+| RSS | rss-parser |
+| Geocoding | Nominatim (OpenStreetMap, free) |
+| Email alerts | Nodemailer + Gmail SMTP |
+| Calendar | Google Calendar API v3 |
+| Scheduler | Railway Cron / Vercel Cron |
+
+## Setup
+
+### 1. Clone and install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cd crawler && npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env` and fill in all values:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env
+```
 
-## Learn More
+Required:
+- `DATABASE_URL` — PostgreSQL connection string
+- `NEXTAUTH_SECRET` — generate with `openssl rand -base64 32`
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — from Google Cloud Console
+- `ENCRYPTION_KEY` — 32-byte hex, generate with `openssl rand -hex 32`
+- `ALERT_EMAIL_FROM` / `ALERT_EMAIL_APP_PASSWORD` — Gmail with App Password enabled
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Database
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npx prisma migrate dev --name init
+npx prisma generate
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Run locally
 
-## Deploy on Vercel
+```bash
+# Next.js app
+npm run dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Crawler (separate terminal)
+cd crawler && npm run crawl
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+
+### Recommended architecture
+
+- **Vercel** — Next.js frontend + API routes
+- **Railway Service 1** — PostgreSQL database
+- **Railway Service 2** — Node.js crawler service (`crawler/`)
+- **Railway Cron** — triggers `POST /run` nightly at 2:00 AM ET
+
+### Google OAuth setup
+
+1. Create a project at console.cloud.google.com
+2. Enable **Google Calendar API** and **Google+ API**
+3. Create OAuth 2.0 credentials (Web application)
+4. Add authorized redirect URI: `https://your-domain.com/api/auth/callback/google`
+5. Request scopes: `openid`, `email`, `profile`, `https://www.googleapis.com/auth/calendar.events`
+
+## Event Sources
+
+The crawler pulls from sources including:
+- Columbus Rec & Parks (ICS feed + Playwright)
+- Metro Parks, COSI, Columbus Museum of Art (ICS feeds)
+- Experience Columbus, Columbus Underground, 614 Magazine (HTML scraping)
+- Columbus Dispatch, Columbus Alive, Patch (RSS feeds)
+- RunSignUp (HTML scraping)
+- Eventbrite (public API)
+- ThisWeek News, Delaware Gazette (RSS)
+
+## Features
+
+- **Nightly crawl** at 2:00 AM ET across 20+ Central Ohio sources
+- **Smart deduplication** via fingerprint hash (title + date + location)
+- **Auto-tagging** with 15 tag categories using keyword matching
+- **Relevance scoring** for Top Picks (multi-source boost, metadata completeness, recency)
+- **Bulk add to Google Calendar** with configurable reminders
+- **Duplicate prevention** — won't re-add events already in your calendar
+- **Filter by** tag, date range, recently crawled, hide already-added
+- **Failure alerts** via email when crawl yields zero events
