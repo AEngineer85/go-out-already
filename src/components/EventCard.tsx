@@ -21,7 +21,8 @@ interface EventCardProps {
 }
 
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr + "T00:00:00");
+  const datePart = dateStr.split("T")[0];
+  const d = new Date(datePart + "T00:00:00");
   return d.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
