@@ -1,5 +1,4 @@
 import axios from "axios";
-import { prisma } from "@/lib/prisma";
 
 interface NominatimResult {
   lat: string;

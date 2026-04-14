@@ -34,7 +34,7 @@ function sixMonthsStr() {
 }
 
 export default function HomePage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   const [topPicks, setTopPicks] = useState<Event[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -107,7 +107,7 @@ export default function HomePage() {
   const handleEventToggle = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   };
@@ -115,7 +115,7 @@ export default function HomePage() {
   const handleTopPickSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   };
