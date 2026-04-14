@@ -37,7 +37,7 @@ export async function scrapeColumbusRecParks(): Promise<RawEvent[]> {
         (e) => e.textContent?.trim() || ""
       ).catch(() => "");
 
-      const link = await el.$eval("a", (e) => (e as HTMLAnchorElement).href).catch(() => "");
+      const link = await el.$eval("a", (e) => (e as { href: string }).href).catch(() => "");
 
       if (title && dateText) {
         const parsedDate = new Date(dateText);
