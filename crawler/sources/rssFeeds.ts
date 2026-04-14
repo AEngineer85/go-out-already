@@ -16,12 +16,12 @@ const RSS_FEEDS: RSSFeedConfig[] = [
   },
   // Columbus Monthly
   {
-    url: "https://www.columbusmonthly.com/feed",
+    url: "https://www.columbusmonthly.com/rss/news",
     sourceName: "Columbus Monthly",
   },
   // Experience Columbus blog/news
   {
-    url: "https://www.experiencecolumbus.com/feed",
+    url: "https://www.experiencecolumbus.com/blog/feed/",
     sourceName: "Experience Columbus",
   },
   // Short North Arts District

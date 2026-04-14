@@ -1,9 +1,67 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import { chromium } from "playwright";
 import type { RawEvent } from "../src/types";
 
 const now = new Date();
 const sixMonthsOut = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
+
+// ── Known Major Annual Races ───────────────────────────────────────────────────
+// These races have websites that are JS-rendered (Wix, React SPA) and cannot be
+// reliably scraped with Cheerio. Dates are confirmed annually and hardcoded here.
+// UPDATE THESE DATES each year when the race announces its date.
+const KNOWN_MAJOR_RACES: RawEvent[] = [
+  // Columbus Marathon Weekend — typically 4th Sunday of October
+  // 2026 date: October 25, 2026 (confirm at columbusmarathon.com each year)
+  {
+    title: "Nationwide Children's Columbus Marathon",
+    description:
+      "Annual Columbus Marathon weekend featuring full marathon (26.2 mi), half marathon (13.1 mi), and other distances through downtown Columbus.",
+    date: "2026-10-25",
+    startTime: "07:30",
+    locationName: "Nationwide Arena / Downtown Columbus",
+    address: "200 W Nationwide Blvd, Columbus, OH 43215",
+    sourceUrl: "https://www.columbusmarathon.com",
+    sourceName: "Columbus Marathon",
+  },
+  {
+    title: "Nationwide Children's Columbus Half Marathon",
+    description:
+      "Half marathon (13.1 mi) as part of the Columbus Marathon weekend.",
+    date: "2026-10-25",
+    startTime: "07:30",
+    locationName: "Nationwide Arena / Downtown Columbus",
+    address: "200 W Nationwide Blvd, Columbus, OH 43215",
+    sourceUrl: "https://www.columbusmarathon.com",
+    sourceName: "Columbus Marathon",
+  },
+  // OhioHealth Capital City Half & Quarter Marathon — typically late April
+  // 2026 date: April 25, 2026 (confirmed at capitalcityhalfmarathon.com)
+  {
+    title: "OhioHealth Capital City Half Marathon",
+    description:
+      "Annual half marathon (13.1 mi) and quarter marathon (6.55 mi) through downtown Columbus. Voted #2 Best Half Marathon in the Nation by USA Today.",
+    date: "2026-04-25",
+    startTime: "08:00",
+    locationName: "Columbus Commons",
+    address: "160 S High St, Columbus, OH 43215",
+    sourceUrl: "https://capitalcityhalfmarathon.com",
+    sourceName: "Capital City Half Marathon",
+  },
+  {
+    title: "OhioHealth Capital City Quarter Marathon",
+    description: "Quarter marathon (6.55 mi) as part of the Capital City Half Marathon weekend.",
+    date: "2026-04-25",
+    startTime: "08:00",
+    locationName: "Columbus Commons",
+    address: "160 S High St, Columbus, OH 43215",
+    sourceUrl: "https://capitalcityhalfmarathon.com",
+    sourceName: "Capital City Half Marathon",
+  },
+].filter((r) => {
+  const d = new Date(r.date);
+  return d >= now && d <= sixMonthsOut;
+});
 
 // ── RunSignUp search (fixed) ──────────────────────────────────────────────────
 // Uses their search page with a broader query instead of city-specific pages
@@ -56,51 +114,61 @@ async function scrapeRunSignUp(): Promise<RawEvent[]> {
 }
 
 // ── Columbus Marathon & Half Marathon ─────────────────────────────────────────
+// Site is Wix (JS-rendered) — Cheerio gets a blank page. Use Playwright to
+// extract the race date dynamically so we can keep the hardcoded entry current.
+// Falls back gracefully; the KNOWN_MAJOR_RACES list ensures the event still
+// appears even if Playwright can't extract an updated date.
 async function scrapeColumbusMarathon(): Promise<RawEvent[]> {
   const events: RawEvent[] = [];
+  let browser;
   try {
-    const { data } = await axios.get("https://www.columbusmarathon.com", {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; GoOutAlready/1.0)" },
-      timeout: 10000,
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto("https://www.columbusmarathon.com", {
+      waitUntil: "domcontentloaded",
+      timeout: 30000,
     });
-    const $ = cheerio.load(data);
+    await page.waitForTimeout(3000); // let Wix JS render
 
-    // Look for event dates on the homepage
-    const dateText = $("[class*='date'], [class*='event-date'], .race-date").first().text().trim();
-    const title = $("h1, h2").first().text().trim() || "Columbus Marathon & Half Marathon";
+    // Look for a date in the rendered DOM
+    const dateText = await page.evaluate(() => {
+      const selectors = [
+        "[class*='race-date']",
+        "[class*='event-date']",
+        "[class*='date']",
+        "time",
+        "h2",
+        "h3",
+      ];
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (el) {
+          const text = el.textContent?.trim() || "";
+          if (/202[5-9]/.test(text)) return text;
+        }
+      }
+      return "";
+    });
 
     if (dateText) {
       const parsedDate = new Date(dateText);
-      if (!isNaN(parsedDate.getTime()) && parsedDate >= now) {
+      if (!isNaN(parsedDate.getTime()) && parsedDate >= now && parsedDate <= sixMonthsOut) {
         events.push({
-          title: "Columbus Marathon & Half Marathon",
-          description: "Annual Columbus Marathon weekend featuring full marathon, half marathon, and other distances through downtown Columbus.",
+          title: "Nationwide Children's Columbus Marathon & Half Marathon",
+          description: "Annual Columbus Marathon weekend — full marathon, half marathon, and more through downtown Columbus.",
           date: parsedDate.toISOString().split("T")[0],
+          startTime: "07:30",
           locationName: "Nationwide Arena / Downtown Columbus",
-          address: "Downtown Columbus, OH",
+          address: "200 W Nationwide Blvd, Columbus, OH 43215",
           sourceUrl: "https://www.columbusmarathon.com",
           sourceName: "Columbus Marathon",
         });
       }
     }
-
-    // Also check for any listed events/races
-    $("[class*='event'], [class*='race']").each((_, el) => {
-      const t = $(el).find("h2, h3, [class*='title']").first().text().trim();
-      const d = $(el).find("time, [class*='date']").first().text().trim();
-      if (!t || !d) return;
-      const pd = new Date(d);
-      if (isNaN(pd.getTime()) || pd < now) return;
-      events.push({
-        title: t,
-        date: pd.toISOString().split("T")[0],
-        locationName: "Downtown Columbus, OH",
-        sourceUrl: "https://www.columbusmarathon.com",
-        sourceName: "Columbus Marathon",
-      });
-    });
   } catch (err) {
-    console.warn("[races] Columbus Marathon error:", err);
+    console.warn("[races] Columbus Marathon (Playwright) error:", err);
+  } finally {
+    if (browser) await browser.close();
   }
   return events;
 }
@@ -147,13 +215,64 @@ async function scrapeOhioRaces(): Promise<RawEvent[]> {
   return events;
 }
 
+// ── Capital City Half Marathon ────────────────────────────────────────────────
+// Simple static site — grab any schema.org or date info from homepage.
+// The KNOWN_MAJOR_RACES entry above is the reliable fallback.
+async function scrapeCapitalCityHalf(): Promise<RawEvent[]> {
+  const events: RawEvent[] = [];
+  try {
+    const { data } = await axios.get("https://capitalcityhalfmarathon.com", {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; GoOutAlready/1.0)" },
+      timeout: 10000,
+    });
+    const $ = cheerio.load(data);
+
+    // Try schema.org JSON-LD first
+    $('script[type="application/ld+json"]').each((_, el) => {
+      try {
+        const json = JSON.parse($(el).html() || "{}");
+        const items = Array.isArray(json) ? json : [json];
+        for (const item of items) {
+          if (!item || typeof item !== "object") continue;
+          const type = item["@type"];
+          if (typeof type === "string" && type.includes("Event") && item.startDate) {
+            const d = new Date(item.startDate);
+            if (!isNaN(d.getTime()) && d >= now && d <= sixMonthsOut) {
+              events.push({
+                title: item.name || "OhioHealth Capital City Half Marathon",
+                description: item.description,
+                date: d.toISOString().split("T")[0],
+                startTime: "08:00",
+                locationName: "Columbus Commons",
+                address: "160 S High St, Columbus, OH 43215",
+                sourceUrl: "https://capitalcityhalfmarathon.com",
+                sourceName: "Capital City Half Marathon",
+              });
+            }
+          }
+        }
+      } catch { /* skip malformed JSON */ }
+    });
+  } catch (err) {
+    console.warn("[races] Capital City Half error:", err);
+  }
+  return events;
+}
+
 export async function scrapeRaces(): Promise<RawEvent[]> {
-  const [runsignup, marathon, ohioraces] = await Promise.all([
+  const [runsignup, marathon, ohioraces, capitalCity] = await Promise.all([
     scrapeRunSignUp(),
     scrapeColumbusMarathon(),
     scrapeOhioRaces(),
+    scrapeCapitalCityHalf(),
   ]);
 
-  console.log(`[races] RunSignUp: ${runsignup.length}, Columbus Marathon: ${marathon.length}, OhioRaces: ${ohioraces.length}`);
-  return [...runsignup, ...marathon, ...ohioraces];
+  // Merge dynamic results with hardcoded known races.
+  // Deduplication in index.ts will handle any overlaps via fingerprintHash.
+  const all = [...KNOWN_MAJOR_RACES, ...runsignup, ...marathon, ...ohioraces, ...capitalCity];
+
+  console.log(
+    `[races] Known: ${KNOWN_MAJOR_RACES.length}, RunSignUp: ${runsignup.length}, Columbus Marathon: ${marathon.length}, OhioRaces: ${ohioraces.length}, Capital City: ${capitalCity.length}`
+  );
+  return all;
 }
