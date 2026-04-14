@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node --loader ts-node/esm src/server.ts",
-    "crawl": "node --loader ts-node/esm src/index.ts",
-    "dev": "ts-node src/server.ts"
+    "start": "ts-node --project tsconfig.json src/server.ts",
+    "crawl": "ts-node --project tsconfig.json src/index.ts",
+    "dev": "ts-node --project tsconfig.json src/server.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",
