@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "ts-node --project tsconfig.json src/server.ts",
+    "start": "npx playwright install chromium && ts-node --project tsconfig.json src/server.ts",
     "crawl": "ts-node --project tsconfig.json src/index.ts",
     "dev": "ts-node --project tsconfig.json src/server.ts"
   },

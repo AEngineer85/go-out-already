@@ -14,21 +14,19 @@ export const VENUE_LIST: VenueConfig[] = [
   { url: "https://www.henmick.com/weekly-schedule", name: "Henmick Farm & Brewery", category: "farm" },
   { url: "https://lyndfruitfarm.com/events", name: "Lynd Fruit Farm", category: "farm" },
   { url: "https://www.timbuk.com/events", name: "Timbuk Farms", category: "farm" },
-  { url: "https://www.evergreenorchard.com/events", name: "Evergreen Orchard", category: "farm" },
-  { url: "https://www.lynd.com/events", name: "Lynd Company Events", category: "farm" },
+  { url: "https://www.lyndfruitfarm.com/events-calendar", name: "Lynd Fruit Farm Calendar", category: "farm" },
 
   // ── Music Venues ─────────────────────────────────────────────────────────
-  { url: "https://www.newportmusichair.com/events", name: "Newport Music Hall", category: "music" },
+  // Note: venue URLs need periodic auditing — venue websites change frequently.
+  // KEMBA Live!, Newport, and The Bluestone are operated by Live Nation / PromoWest.
+  { url: "https://www.promowestlive.com/columbus", name: "PromoWest Venues Columbus", category: "music" },
   { url: "https://www.kembalive.com/events", name: "KEMBA Live!", category: "music" },
-  { url: "https://www.thebluestonecols.com/events", name: "The Bluestone", category: "music" },
+  { url: "https://thebluestonecols.com/events", name: "The Bluestone", category: "music" },
   { url: "https://www.aramusic.com/events", name: "A&R Music Bar", category: "music" },
-  { url: "https://www.promowestlive.com/columbus", name: "PromoWest / KEMBA", category: "music" },
-  { url: "https://www.skullydublinoh.com/events", name: "Skully's Music Diner", category: "music" },
-  { url: "https://www.woodlands-taverncolumbus.com/events", name: "Woodlands Tavern", category: "music" },
-  { url: "https://www.theacademycolumbus.com/events", name: "The Academy", category: "music" },
-  { url: "https://www.expressiveathlete.com/ohio-theatre-events", name: "Ohio Theatre", category: "music" },
+  { url: "https://www.woodlandstavern.com/events", name: "Woodlands Tavern", category: "music" },
   { url: "https://www.capa.com/events", name: "CAPA Columbus", category: "music" },
   { url: "https://www.palacetheatrecolumbus.com/events", name: "Palace Theatre", category: "music" },
+  { url: "https://www.newportmusichair.com/events", name: "Newport Music Hall", category: "music" },
 
   // ── Arts & Culture ────────────────────────────────────────────────────────
   { url: "https://www.columbusmuseum.org/events", name: "Columbus Museum of Art", category: "arts" },

@@ -9,33 +9,35 @@ interface RSSFeedConfig {
 }
 
 const RSS_FEEDS: RSSFeedConfig[] = [
-  {
-    url: "https://www.columbusunderground.com/feed",
-    sourceName: "Columbus Underground",
-  },
+  // 614 Magazine — active, covers Columbus events broadly
   {
     url: "https://www.614now.com/feed",
     sourceName: "614 Magazine",
   },
+  // Columbus Monthly
   {
-    url: "https://www.dispatch.com/rss/entertainment",
-    sourceName: "Columbus Dispatch",
+    url: "https://www.columbusmonthly.com/feed",
+    sourceName: "Columbus Monthly",
   },
+  // Experience Columbus blog/news
   {
-    url: "https://www.columbusalive.com/feeds/feed.rss",
-    sourceName: "Columbus Alive",
+    url: "https://www.experiencecolumbus.com/feed",
+    sourceName: "Experience Columbus",
   },
+  // Short North Arts District
   {
-    url: "https://patch.com/ohio/columbus/rss.xml",
-    sourceName: "Patch Columbus",
+    url: "https://www.shortnorth.org/feed",
+    sourceName: "Short North",
   },
+  // German Village Society
   {
-    url: "https://patch.com/ohio/delaware/rss.xml",
-    sourceName: "Patch Delaware",
+    url: "https://germanvillage.com/feed",
+    sourceName: "German Village",
   },
+  // Ohio History Connection
   {
-    url: "https://www.thisweeknews.com/feed",
-    sourceName: "ThisWeek News",
+    url: "https://www.ohiohistory.org/feed",
+    sourceName: "Ohio History Connection",
   },
 ];
 
