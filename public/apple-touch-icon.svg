@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <!-- Blue rounded square background -->
+  <rect width="180" height="180" rx="32" fill="#2563EB"/>
+  <!-- White map pin / location marker -->
+  <path d="M90 17C58.97 17 34 41.97 34 73C34 113.91 90 163 90 163C90 163 146 113.91 146 73C146 41.97 121.03 17 90 17Z" fill="white"/>
+  <!-- Blue 5-pointed star inside pin head -->
+  <path d="M90 42 L96.18 61.18 L116.51 61.18 L100.66 73.62 L106.84 92.8 L90 80.36 L73.16 92.8 L79.34 73.62 L63.49 61.18 L83.82 61.18 Z" fill="#2563EB"/>
+</svg>

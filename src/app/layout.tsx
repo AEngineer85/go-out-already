@@ -7,8 +7,8 @@ export const metadata: Metadata = {
   title: "go out already",
   description: "Central Ohio events, all in one place.",
   icons: {
-    icon: "/favicon.svg",
-    apple: "/apple-touch-icon.svg",
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-touch-icon.svg", type: "image/svg+xml" }],
   },
 };
 

@@ -1,5 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Blue rounded square background -->
   <rect width="32" height="32" rx="6" fill="#2563EB"/>
-  <circle cx="16" cy="11" r="4" fill="white"/>
-  <path d="M16 17c-5 0-7 2.5-7 4h14c0-1.5-2-4-7-4z" fill="white"/>
+  <!-- White map pin / location marker -->
+  <path d="M16 3C10.48 3 6 7.48 6 13C6 20.25 16 29 16 29C16 29 26 20.25 26 13C26 7.48 21.52 3 16 3Z" fill="white"/>
+  <!-- Blue 5-pointed star inside pin head -->
+  <path d="M16 7.5 L17.18 10.88 L20.78 10.88 L17.9 12.94 L19.08 16.32 L16 14.26 L12.92 16.32 L14.1 12.94 L11.22 10.88 L14.82 10.88 Z" fill="#2563EB"/>
 </svg>
