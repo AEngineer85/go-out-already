@@ -43,12 +43,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token.sub) {
-        const dbUser = await prisma.user.findUnique({
-          where: { googleId: token.sub },
-        });
-        if (dbUser) {
-          session.user.id = dbUser.id;
-        }
+        session.user.id = token.sub;
       }
       return session;
     },
