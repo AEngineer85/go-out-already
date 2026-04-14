@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String   @id @default(uuid())
+  googleId               String   @unique
+  email                  String   @unique
+  refreshToken           String?
+  defaultRadiusMiles     Int      @default(25)
+  defaultReminderMinutes Int      @default(1440)
+  alertEmail             String?
+  createdAt              DateTime @default(now())
+}
+
+model Event {
+  id                String   @id @default(uuid())
+  title             String
+  description       String?
+  date              DateTime @db.Date
+  startTime         String?
+  endTime           String?
+  locationName      String
+  address           String?
+  lat               Float?
+  lng               Float?
+  sourceUrl         String
+  sourceName        String
+  additionalSources Json?
+  tags              String[]
+  fingerprintHash   String   @unique
+  relevanceScore    Float    @default(0)
+  crawledAt         DateTime @default(now())
+  addedToCalendar   Boolean  @default(false)
+  calendarEventId   String?
+  archived          Boolean  @default(false)
+}
+
+model CrawlLog {
+  id             String    @id @default(uuid())
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  sourcesTotal   Int       @default(0)
+  sourcesSuccess Int       @default(0)
+  eventsFound    Int       @default(0)
+  eventsNew      Int       @default(0)
+  errors         Json?
+  success        Boolean   @default(false)
+}
