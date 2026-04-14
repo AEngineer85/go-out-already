@@ -7,6 +7,7 @@ interface ICSFeedConfig {
 }
 
 const ICS_FEEDS: ICSFeedConfig[] = [
+  // Government & Parks
   {
     url: "https://www.columbusrecparks.com/events/?ical=1",
     sourceName: "Columbus Rec & Parks",
@@ -23,9 +24,56 @@ const ICS_FEEDS: ICSFeedConfig[] = [
     url: "https://ohioraces.com/races/feed/ical",
     sourceName: "OhioRaces.com",
   },
+  // Arts & Culture venues
   {
     url: "https://www.cosi.org/events/?ical=1",
     sourceName: "COSI",
+  },
+  {
+    url: "https://www.columbussymphony.com/events/?ical=1",
+    sourceName: "Columbus Symphony",
+  },
+  {
+    url: "https://www.gcac.org/events/?ical=1",
+    sourceName: "Greater Columbus Arts Council",
+  },
+  {
+    url: "https://www.shortnorth.org/events/?ical=1",
+    sourceName: "Short North Arts District",
+  },
+  {
+    url: "https://www.shadowboxlive.org/events/?ical=1",
+    sourceName: "Shadowbox Live",
+  },
+  // Community & Neighborhood
+  {
+    url: "https://www.dublinchamber.org/events/?ical=1",
+    sourceName: "Dublin Chamber",
+  },
+  {
+    url: "https://www.westerville.org/events/?ical=1",
+    sourceName: "City of Westerville",
+  },
+  {
+    url: "https://www.dublin.oh.us/events/?ical=1",
+    sourceName: "City of Dublin",
+  },
+  {
+    url: "https://www.delaware.oh.us/events/?ical=1",
+    sourceName: "City of Delaware",
+  },
+  {
+    url: "https://www.hilliardohio.gov/events/?ical=1",
+    sourceName: "City of Hilliard",
+  },
+  // Sports & Recreation
+  {
+    url: "https://www.milb.com/columbus/schedule/ical",
+    sourceName: "Columbus Clippers",
+  },
+  {
+    url: "https://runsignup.com/Races/Results/?ical=1&state=OH",
+    sourceName: "RunSignUp Ohio",
   },
   {
     url: "https://www.columbusmuseum.org/events/?ical=1",

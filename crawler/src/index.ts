@@ -4,10 +4,10 @@ import { assignTags, computeRelevanceScore } from "./tagging";
 import { geocodeAddress } from "./geocode";
 import { scrapeICSFeeds } from "../sources/icsFeeds";
 import { scrapeRSSFeeds } from "../sources/rssFeeds";
-import { scrapeEventbrite } from "../sources/eventbrite";
 import { scrapeExperienceColumbus } from "../sources/experienceColumbus";
-import { scrapeRunSignUp } from "../sources/runSignUp";
 import { scrapeColumbusRecParks } from "../sources/columbusRecParks";
+import { scrapeSportsSchedules } from "../sources/sportsSchedules";
+import { scrapeRaces } from "../sources/races";
 import type { RawEvent } from "./types";
 
 const prisma = new PrismaClient();
@@ -53,10 +53,10 @@ export async function runCrawl(): Promise<{
   const sourceRunners = [
     () => runSource("ICS Feeds", scrapeICSFeeds),
     () => runSource("RSS Feeds", scrapeRSSFeeds),
-    () => runSource("Eventbrite", scrapeEventbrite),
     () => runSource("Experience Columbus", scrapeExperienceColumbus),
-    () => runSource("RunSignUp", scrapeRunSignUp),
     () => runSource("Columbus Rec & Parks", scrapeColumbusRecParks),
+    () => runSource("Sports Schedules", scrapeSportsSchedules),
+    () => runSource("Races", scrapeRaces),
   ];
 
   for (const runner of sourceRunners) {
