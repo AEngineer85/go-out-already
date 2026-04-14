@@ -16,7 +16,7 @@ async function scrapeClippers(): Promise<RawEvent[]> {
       `https://statsapi.mlb.com/api/v1/schedule`,
       {
         params: {
-          teamId: 455, // Columbus Clippers MiLB team ID
+          teamId: 445, // Columbus Clippers MiLB team ID
           sportId: 11, // Triple-A
           startDate: start,
           endDate: end,
@@ -28,7 +28,7 @@ async function scrapeClippers(): Promise<RawEvent[]> {
 
     for (const date of data.dates ?? []) {
       for (const game of date.games ?? []) {
-        const isHome = game.teams?.home?.team?.id === 455;
+        const isHome = game.teams?.home?.team?.id === 445;
         if (!isHome) continue; // only home games
 
         const gameDate = new Date(game.gameDate);
