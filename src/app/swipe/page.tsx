@@ -27,7 +27,7 @@ export default function SwipePage() {
   const [toast, setToast] = useState<string | null>(null);
   const [reviewedCount, setReviewedCount] = useState(0);
   const [prefetching, setPrefetching] = useState(false);
-  const [queueError, setQueueError] = useState<string | null>(null);
+  const [queueError, setQueueError] = useState(false);
 
   // Calendar modal state
   const [calendarEvent, setCalendarEvent] = useState<SwipeEvent | null>(null);
@@ -66,18 +66,18 @@ export default function SwipePage() {
 
   async function loadQueue() {
     setLoading(true);
-    setQueueError(null);
+    setQueueError(false);
     try {
       const res = await fetch("/api/swipe/queue?limit=20");
       const data = await res.json();
       if (!res.ok) {
-        setQueueError(`API error ${res.status}: ${data.error ?? JSON.stringify(data)}`);
+        setQueueError(true);
         setQueue([]);
       } else {
         setQueue(data.events ?? []);
       }
-    } catch (e) {
-      setQueueError(`Network error: ${e instanceof Error ? e.message : String(e)}`);
+    } catch {
+      setQueueError(true);
       setQueue([]);
     } finally {
       setLoading(false);
@@ -226,9 +226,15 @@ export default function SwipePage() {
         </div>
 
         {queueError ? (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-[12px] text-red-700 font-mono break-all">
-            <p className="font-semibold mb-1">Could not load events:</p>
-            <p>{queueError}</p>
+          <div className="text-center py-12">
+            <p className="text-[15px] font-medium text-[#333333] mb-2">Couldn&apos;t load events</p>
+            <p className="text-[13px] text-[#999999] mb-5">Check your connection and try again.</p>
+            <button
+              onClick={loadQueue}
+              className="px-5 py-2 rounded-full bg-[#2563EB] text-white text-[13px] font-medium"
+            >
+              Retry
+            </button>
           </div>
         ) : queue.length === 0 ? (
           <EmptySwipeState reviewedCount={reviewedCount} />
