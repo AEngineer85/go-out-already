@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "20", 10), 50);
 
-  // Resolve user UUID
+  // Resolve user UUID from email
   const user = await prisma.user.findUnique({
-    where: { googleId: session.user.id },
+    where: { email: session.user.email! },
     select: { id: true },
   });
   if (!user) {

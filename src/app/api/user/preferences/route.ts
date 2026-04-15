@@ -9,7 +9,7 @@ export async function GET() {
   }
 
   const user = await prisma.user.findUnique({
-    where: { googleId: session.user.id },
+    where: { email: session.user.email! },
     select: {
       defaultRadiusMiles: true,
       defaultReminderMinutes: true,
@@ -31,7 +31,7 @@ export async function PUT(request: NextRequest) {
   const { defaultRadiusMiles, defaultReminderMinutes, alertEmail } = body;
 
   const updated = await prisma.user.update({
-    where: { googleId: session.user.id },
+    where: { email: session.user.email! },
     data: {
       ...(defaultRadiusMiles != null && { defaultRadiusMiles }),
       ...(defaultReminderMinutes != null && { defaultReminderMinutes }),

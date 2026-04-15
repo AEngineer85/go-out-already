@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   }
 
   const user = await prisma.user.findUnique({
-    where: { googleId: session.user.id },
+    where: { email: session.user.email! },
   });
 
   if (!user?.refreshToken) {

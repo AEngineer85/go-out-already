@@ -19,9 +19,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  // Resolve the database UUID from the Google OAuth ID
+  // Resolve the database UUID from the session email (more reliable than googleId/token.sub)
   const user = await prisma.user.findUnique({
-    where: { googleId: session.user.id },
+    where: { email: session.user.email! },
     select: { id: true },
   });
   if (!user) {

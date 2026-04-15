@@ -14,9 +14,9 @@ export async function DELETE(
 
   const { swipeId } = params;
 
-  // Resolve user UUID
+  // Resolve user UUID from email
   const user = await prisma.user.findUnique({
-    where: { googleId: session.user.id },
+    where: { email: session.user.email! },
     select: { id: true },
   });
   if (!user) {
