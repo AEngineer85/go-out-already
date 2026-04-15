@@ -27,6 +27,7 @@ export interface SwipeEvent {
   address?: string | null;
   tags: string[];
   sourceName: string;
+  sourceUrl: string;
   additionalSources?: { sourceName: string }[] | null;
   addedToCalendar: boolean;
   crawledAt: string;
@@ -191,9 +192,24 @@ export const SwipeCard = forwardRef<SwipeCardHandle, SwipeCardProps>(
             </p>
           )}
 
-          {/* Footer: source + calendar button */}
+          {/* Footer: source + more info + calendar button */}
           <div className="flex items-center justify-between mt-1 pt-2 border-t border-[rgba(0,0,0,0.08)]">
-            <span className="text-[11px] text-[#999999]">{event.sourceName}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-[#999999]">{event.sourceName}</span>
+              <a
+                href={event.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-0.5 text-[11px] text-[#2563EB] font-medium hover:text-[#185FA5] transition-colors"
+              >
+                More info
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </a>
+            </div>
             {event.addedToCalendar ? (
               <span className="flex items-center gap-1 text-[11px] text-[#3B6D11] font-medium">
                 <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">

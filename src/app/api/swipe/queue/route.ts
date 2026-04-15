@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
       lng: true,
       tags: true,
       sourceName: true,
+      sourceUrl: true,
       additionalSources: true,
       relevanceScore: true,
       addedToCalendar: true,
