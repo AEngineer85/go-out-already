@@ -48,7 +48,9 @@ const SWIPE_THRESHOLD = 100; // px before triggering a swipe
 const FLY_DISTANCE = 650;    // px to animate off screen
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00");
+  // Strip any time component so we always parse a plain date at noon local time
+  const datePart = dateStr.split("T")[0];
+  const d = new Date(datePart + "T12:00:00");
   return d.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -100,10 +102,11 @@ export const SwipeCard = forwardRef<SwipeCardHandle, SwipeCardProps>(
 
     return (
       <motion.div
-        style={{ x, rotate, touchAction: "none" }}
+        style={{ x, rotate, touchAction: "pan-y" }}
         drag={isTop ? "x" : false}
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.9}
+        dragSnapToOrigin={false}
+        dragMomentum={false}
+        dragElastic={0.15}
         onDragEnd={(_, info) => {
           if (info.offset.x > SWIPE_THRESHOLD) {
             fire("right");
@@ -123,7 +126,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, SwipeCardProps>(
         <SwipeEventVisual tags={event.tags} title={event.title} />
 
         {/* Card body */}
-        <div className="px-4 pt-3 pb-4 flex flex-col gap-2 overflow-y-auto max-h-[calc(100%-144px)]">
+        <div className="px-4 pt-3 pb-4 flex flex-col gap-2" style={{ overflowY: "hidden" }}>
           {/* Date / time */}
           <div className="flex items-center gap-1.5 text-[13px] text-[#555555]">
             <svg
