@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { distanceMiles } from "@/lib/geocode";
 import {
   computePersonalScore,
+  computeKeywordBoost,
+  shouldBlockByTime,
   COLD_START_THRESHOLD,
+  RECENCY_BIAS_MULTIPLIERS,
 } from "@/lib/swipePreferences";
 
 export async function GET(request: NextRequest) {
@@ -15,10 +19,25 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "20", 10), 50);
 
-  // Resolve user UUID from email
+  // Resolve user + all discovery prefs in one query
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
-    select: { id: true },
+    select: {
+      id: true,
+      defaultRadiusMiles: true,
+      homeLat: true,
+      homeLng: true,
+      recencyBias: true,
+      blockWorkHours: true,
+      workStartHour: true,
+      workEndHour: true,
+      blockLateWeeknights: true,
+      weeknightCutoffHour: true,
+      weekendsOnly: true,
+      boostFreeEvents: true,
+      maxWeeksAhead: true,
+      favoriteKeywords: true,
+    },
   });
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -53,22 +72,20 @@ export async function GET(request: NextRequest) {
   });
   const swipedEventIds = swipedActions.map((a) => a.eventId);
 
-  // Date window: today → 8 weeks out (wider than main feed for discovery)
+  // Date window: today → maxWeeksAhead weeks out
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const eightWeeksOut = new Date(today.getTime() + 56 * 24 * 60 * 60 * 1000);
+  const weeksAhead = user.maxWeeksAhead ?? 8;
+  const windowEnd = new Date(
+    today.getTime() + weeksAhead * 7 * 24 * 60 * 60 * 1000
+  );
 
   // Fetch all candidate events not yet swiped
   const candidates = await prisma.event.findMany({
     where: {
       archived: false,
-      date: {
-        gte: today,
-        lte: eightWeeksOut,
-      },
-      ...(swipedEventIds.length > 0
-        ? { id: { notIn: swipedEventIds } }
-        : {}),
+      date: { gte: today, lte: windowEnd },
+      ...(swipedEventIds.length > 0 ? { id: { notIn: swipedEventIds } } : {}),
     },
     select: {
       id: true,
@@ -79,6 +96,8 @@ export async function GET(request: NextRequest) {
       endTime: true,
       locationName: true,
       address: true,
+      lat: true,
+      lng: true,
       tags: true,
       sourceName: true,
       additionalSources: true,
@@ -88,17 +107,65 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  // Score and sort — use personal scores only after cold-start threshold
-  const isColdStart = totalSwipes < COLD_START_THRESHOLD;
+  // ── Apply hard filters ────────────────────────────────────────────────────
 
-  const scored = candidates.map((event) => ({
+  // 1. Location radius (only if user has set a home location)
+  const radiusFiltered =
+    user.homeLat != null && user.homeLng != null
+      ? candidates.filter((e) => {
+          if (e.lat == null || e.lng == null) return true; // no coords → include
+          return (
+            distanceMiles(user.homeLat!, user.homeLng!, e.lat, e.lng) <=
+            (user.defaultRadiusMiles ?? 25)
+          );
+        })
+      : candidates;
+
+  // 2. Time blocks (work hours, late weeknights, weekends-only)
+  const timeFiltered = radiusFiltered.filter(
+    (e) =>
+      !shouldBlockByTime(
+        { date: new Date(e.date), startTime: e.startTime },
+        {
+          blockWorkHours: user.blockWorkHours,
+          workStartHour: user.workStartHour,
+          workEndHour: user.workEndHour,
+          blockLateWeeknights: user.blockLateWeeknights,
+          weeknightCutoffHour: user.weeknightCutoffHour,
+          weekendsOnly: user.weekendsOnly,
+        }
+      )
+  );
+
+  // ── Score and sort ────────────────────────────────────────────────────────
+
+  const isColdStart = totalSwipes < COLD_START_THRESHOLD;
+  const recencyBiasMultiplier =
+    RECENCY_BIAS_MULTIPLIERS[user.recencyBias ?? "moderate"] ?? 1.0;
+  const favoriteKeywords = user.favoriteKeywords ?? [];
+
+  const scored = timeFiltered.map((event) => ({
     event,
     score: isColdStart
-      ? event.relevanceScore
+      ? // Cold start: global relevance + keyword boost (manual prefs apply immediately)
+        event.relevanceScore +
+        computeKeywordBoost(
+          {
+            title: event.title,
+            description: event.description,
+            locationName: event.locationName,
+          },
+          favoriteKeywords
+        )
       : computePersonalScore(
           { ...event, date: new Date(event.date) },
           tagWeights,
-          sourceWeights
+          sourceWeights,
+          {
+            recencyBiasMultiplier,
+            favoriteKeywords,
+            boostFreeEvents: user.boostFreeEvents,
+          }
         ),
   }));
 

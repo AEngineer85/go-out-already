@@ -1,0 +1,14 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "blockLateWeeknights" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "blockWorkHours" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "boostFreeEvents" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "favoriteKeywords" TEXT[],
+ADD COLUMN     "homeLat" DOUBLE PRECISION,
+ADD COLUMN     "homeLng" DOUBLE PRECISION,
+ADD COLUMN     "homeZipCode" TEXT,
+ADD COLUMN     "maxWeeksAhead" INTEGER NOT NULL DEFAULT 8,
+ADD COLUMN     "recencyBias" TEXT NOT NULL DEFAULT 'moderate',
+ADD COLUMN     "weekendsOnly" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "weeknightCutoffHour" INTEGER NOT NULL DEFAULT 21,
+ADD COLUMN     "workEndHour" INTEGER NOT NULL DEFAULT 17,
+ADD COLUMN     "workStartHour" INTEGER NOT NULL DEFAULT 9;

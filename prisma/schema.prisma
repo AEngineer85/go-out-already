@@ -17,6 +17,21 @@ model User {
   alertEmail             String?
   createdAt              DateTime @default(now())
 
+  // Discovery preferences
+  homeZipCode         String?
+  homeLat             Float?
+  homeLng             Float?
+  recencyBias         String   @default("moderate") // "all" | "moderate" | "soon"
+  blockWorkHours      Boolean  @default(false)
+  workStartHour       Int      @default(9)
+  workEndHour         Int      @default(17)
+  blockLateWeeknights Boolean  @default(false)
+  weeknightCutoffHour Int      @default(21)
+  weekendsOnly        Boolean  @default(false)
+  boostFreeEvents     Boolean  @default(false)
+  maxWeeksAhead       Int      @default(8)
+  favoriteKeywords    String[]
+
   swipeActions      SwipeAction[]
   tagPreferences    UserTagPreference[]
   sourcePreferences UserSourcePreference[]
