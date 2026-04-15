@@ -57,6 +57,13 @@ cd crawler && npm run crawl    # Run crawler once
 - **Sports APIs**: Columbus Clippers (MiLB), Blue Jackets (NHL), Columbus Crew, Ohio State
 - **Races**: RunSignUp, OhioRaces.com (Columbus Marathon scraper removed — covered by ICS)
 - **Schema.org Venue Scraper**: 50+ curated Central Ohio venues — farms, music, arts, community, outdoor, food, suburban city sites
+- **Henmick Farm & Brewery**: Custom Squarespace HTML scraper (live music + special events, Delaware OH)
+- **Alum Creek Marina**: Custom Weebly HTML scraper (live music events, Sunbury OH)
+- **Ohio DNR**: Undocumented ODNR search API — filters ~2000 statewide events to Central Ohio parks (Alum Creek, Hocking Hills, Delaware State Park, etc.)
+- **Uptown Westerville**: Tribe Events Calendar Pro REST API (`/wp-json/tribe/events/v1/events`) — 250+ events, full venue + cost data
+- **Visit Delaware Ohio**: WordPress custom post type REST API (`/wp-json/wp/v2/event`) — 1000+ Delaware County events, up to a year out, includes coordinates and addresses
+- **Main Street Delaware**: eventON WordPress plugin — nonce-based admin-ajax calendar scraper (First Fridays, festivals, downtown events)
+- **Note — Delaware OH city calendar** (`delawareohio.net`): Blocked by Akamai WAF on all non-browser requests; not currently crawled
 
 ## Features
 

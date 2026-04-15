@@ -12,6 +12,9 @@ import { scrapeVenueList } from "../sources/schemaOrgScraper";
 import { scrapeHenmick } from "../sources/henmick";
 import { scrapeAlumCreekMarina } from "../sources/alumCreekMarina";
 import { scrapeODNR } from "../sources/odnr";
+import { scrapeUptownWesterville } from "../sources/uptownWesterville";
+import { scrapeVisitDelawareOhio } from "../sources/visitDelawareOhio";
+import { scrapeMainStreetDelaware } from "../sources/mainStreetDelaware";
 import type { RawEvent } from "./types";
 
 const prisma = new PrismaClient();
@@ -65,6 +68,9 @@ export async function runCrawl(): Promise<{
     () => runSource("Henmick Farm & Brewery", scrapeHenmick),
     () => runSource("Alum Creek Marina", scrapeAlumCreekMarina),
     () => runSource("Ohio DNR", scrapeODNR),
+    () => runSource("Uptown Westerville", scrapeUptownWesterville),
+    () => runSource("Visit Delaware Ohio", scrapeVisitDelawareOhio),
+    () => runSource("Main Street Delaware", scrapeMainStreetDelaware),
   ];
 
   for (const runner of sourceRunners) {
