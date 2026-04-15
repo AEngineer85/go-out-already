@@ -116,7 +116,8 @@ export default function SettingsPage() {
 
       fetch("/api/crawl/status")
         .then((r) => r.json())
-        .then(setLastCrawl);
+        .then((d) => { if (d && !d.error) setLastCrawl(d); })
+        .catch(() => {});
     }
   }, [status, router]);
 
@@ -492,17 +493,38 @@ export default function SettingsPage() {
 
         {/* ── Crawler ─────────────────────────────────────────────────────── */}
         <div className={cardClass} style={cardStyle}>
-          <h2 className="text-[14px] font-medium text-[#111111] mb-1">Crawler</h2>
-          {lastCrawl && (
-            <p className="text-[12px] text-[#555555] mb-3">
-              Last crawl:{" "}
-              {new Date(lastCrawl.startedAt).toLocaleString()} ·{" "}
-              {lastCrawl.eventsNew} new events ·{" "}
-              <span className={lastCrawl.success ? "text-[#3B6D11]" : "text-red-600"}>
-                {lastCrawl.success ? "Success" : "Failed"}
-              </span>
-            </p>
-          )}
+          <h2 className="text-[14px] font-medium text-[#111111] mb-3">Crawler</h2>
+
+          <div
+            className="rounded-[8px] px-3 py-2.5 mb-3 text-[12px]"
+            style={{ background: "rgba(0,0,0,0.03)", border: "0.5px solid rgba(0,0,0,0.08)" }}
+          >
+            {lastCrawl ? (
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#555555]">Last run</span>
+                  <span className="text-[#111111] font-medium">
+                    {new Date(lastCrawl.startedAt).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#555555]">New events found</span>
+                  <span className="text-[#111111] font-medium">{lastCrawl.eventsNew}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#555555]">Status</span>
+                  <span
+                    className={`font-medium ${lastCrawl.success ? "text-[#3B6D11]" : "text-red-600"}`}
+                  >
+                    {lastCrawl.success ? "✓ Success" : "✗ Failed"}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[#999999]">No crawl data yet.</p>
+            )}
+          </div>
+
           <button
             onClick={handleTriggerCrawl}
             disabled={triggering}
