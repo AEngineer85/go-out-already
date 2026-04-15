@@ -1,5 +1,6 @@
 import ical from "node-ical";
 import type { RawEvent } from "../src/types";
+import { toEasternHHMM, toEasternDateStr } from "../src/timeUtils";
 
 interface ICSFeedConfig {
   url: string;
@@ -79,13 +80,15 @@ export async function scrapeICSFeeds(): Promise<{ events: RawEvent[]; errors: st
         const eventDate = new Date(start);
         if (eventDate < now || eventDate > sixMonthsOut) continue;
 
-        const dateStr = eventDate.toISOString().split("T")[0];
-        const startTime = start instanceof Date && !isNaN(start.getTime())
-          ? start.toTimeString().slice(0, 5)
-          : undefined;
-        const endTime = end instanceof Date && !isNaN(end.getTime())
-          ? end.toTimeString().slice(0, 5)
-          : undefined;
+        const dateStr = toEasternDateStr(eventDate);
+        const startTime =
+          start instanceof Date && !isNaN(start.getTime())
+            ? toEasternHHMM(start)
+            : undefined;
+        const endTime =
+          end instanceof Date && !isNaN(end.getTime())
+            ? toEasternHHMM(end)
+            : undefined;
 
         const location = typeof entry.location === "string" ? entry.location : "";
         const summary = typeof entry.summary === "string" ? entry.summary : "";

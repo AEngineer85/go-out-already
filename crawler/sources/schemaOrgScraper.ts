@@ -11,6 +11,7 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import type { RawEvent } from "../src/types";
 import { VENUE_LIST, type VenueConfig } from "./venueList";
+import { toEasternHHMM, toEasternDateStr } from "../src/timeUtils";
 
 const now = new Date();
 const sixMonthsOut = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
@@ -24,23 +25,23 @@ function isInRange(dateStr: string | undefined): boolean {
   return d >= now && d <= sixMonthsOut;
 }
 
-/** Normalise a variety of date strings to YYYY-MM-DD */
+/** Normalise a variety of date strings to YYYY-MM-DD in Eastern Time */
 function toDateStr(raw: string | undefined): string | null {
   if (!raw) return null;
   const d = new Date(raw);
   if (isNaN(d.getTime())) return null;
-  return d.toISOString().split("T")[0];
+  return toEasternDateStr(d);
 }
 
-/** Extract HH:MM from an ISO datetime or time string */
+/** Extract HH:MM (Eastern Time) from an ISO datetime or plain time string */
 function toTimeStr(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
   const d = new Date(raw);
   if (!isNaN(d.getTime())) {
-    const t = d.toTimeString().slice(0, 5);
+    const t = toEasternHHMM(d);
     return t === "00:00" ? undefined : t;
   }
-  // already HH:MM
+  // Already a bare HH:MM string (no timezone info) — use as-is
   const match = raw.match(/(\d{1,2}:\d{2})/);
   return match ? match[1] : undefined;
 }

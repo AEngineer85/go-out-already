@@ -126,7 +126,7 @@ export async function runCrawl(): Promise<{
       const existing = await prisma.event.findUnique({ where: { fingerprintHash: fp } });
 
       if (existing) {
-        // Update additional sources if new ones found
+        // Merge additional sources
         const existingAdditional = (existing.additionalSources as { sourceName: string }[] | null) ?? [];
         const allAdditional = [
           ...existingAdditional,
@@ -139,6 +139,10 @@ export async function runCrawl(): Promise<{
           data: {
             additionalSources: allAdditional,
             relevanceScore,
+            // Always refresh time fields so timezone-corrected values overwrite
+            // any previously stored UTC times from older crawler runs
+            startTime: event.startTime ?? existing.startTime,
+            endTime: event.endTime ?? existing.endTime,
           },
         });
       } else {

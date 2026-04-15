@@ -1,26 +1,10 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import type { RawEvent } from "../src/types";
+import { toEasternHHMM, toEasternDateStr } from "../src/timeUtils";
 
 const now = new Date();
 const sixMonthsOut = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
-
-/** Convert a UTC date to a "HH:MM" string in Eastern Time */
-function toEasternTime(date: Date): string {
-  return date.toLocaleTimeString("en-US", {
-    timeZone: "America/New_York",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
-/** Convert a UTC date to a YYYY-MM-DD string in Eastern Time */
-function toEasternDate(date: Date): string {
-  return date.toLocaleDateString("en-CA", {
-    timeZone: "America/New_York",
-  });
-}
 
 // ── Columbus Clippers (MiLB) ──────────────────────────────────────────────────
 // Uses the free MLB Stats API — no key required
@@ -54,8 +38,8 @@ async function scrapeClippers(): Promise<RawEvent[]> {
 
         events.push({
           title: `Columbus Clippers vs. ${opponent}`,
-          date: toEasternDate(gameDate),
-          startTime: toEasternTime(gameDate),
+          date: toEasternDateStr(gameDate),
+          startTime: toEasternHHMM(gameDate),
           locationName: venue,
           address: "330 Huntington Park Ln, Columbus, OH 43215",
           sourceUrl: "https://www.milb.com/columbus",
@@ -93,9 +77,9 @@ async function scrapeBlueJackets(): Promise<RawEvent[]> {
 
       events.push({
         title: `Columbus Blue Jackets vs. ${opponent}`,
-        date: toEasternDate(gameDate),
+        date: toEasternDateStr(gameDate),
         startTime: game.startTimeUTC
-          ? toEasternTime(new Date(game.startTimeUTC))
+          ? toEasternHHMM(new Date(game.startTimeUTC))
           : undefined,
         locationName: "Nationwide Arena",
         address: "200 W Nationwide Blvd, Columbus, OH 43215",
@@ -143,8 +127,8 @@ async function scrapeCrew(): Promise<RawEvent[]> {
 
       events.push({
         title: `Columbus Crew vs. ${opponent}`,
-        date: toEasternDate(gameDate),
-        startTime: toEasternTime(gameDate),
+        date: toEasternDateStr(gameDate),
+        startTime: toEasternHHMM(gameDate),
         locationName: "Lower.com Field",
         address: "96 Columbus Crew Way, Columbus, OH 43211",
         sourceUrl: "https://www.columbuscrew.com/schedule",
