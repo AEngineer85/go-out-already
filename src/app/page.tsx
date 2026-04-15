@@ -49,6 +49,7 @@ export default function HomePage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [recentlyAdded, setRecentlyAdded] = useState(false);
   const [hideAdded, setHideAdded] = useState(false);
+  const [hideArchived, setHideArchived] = useState(false);
   const [dateFrom, setDateFrom] = useState(todayStr());
   const [dateTo, setDateTo] = useState(sixMonthsStr());
 
@@ -74,6 +75,7 @@ export default function HomePage() {
     if (dateTo) params.set("dateTo", dateTo);
     if (recentlyAdded) params.set("recentlyAdded", "true");
     if (hideAdded) params.set("hideAdded", "true");
+    if (hideArchived) params.set("hideArchived", "true");
 
     const res = await fetch(`/api/events?${params}`);
     if (res.ok) {
@@ -81,7 +83,7 @@ export default function HomePage() {
       setEvents(data.events);
       setNewCount(data.newCount);
     }
-  }, [selectedTags, dateFrom, dateTo, recentlyAdded, hideAdded]);
+  }, [selectedTags, dateFrom, dateTo, recentlyAdded, hideAdded, hideArchived]);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -229,6 +231,9 @@ export default function HomePage() {
                   onRecentlyAddedToggle={() => setRecentlyAdded((v) => !v)}
                   hideAdded={hideAdded}
                   onHideAddedToggle={() => setHideAdded((v) => !v)}
+                  hideArchived={hideArchived}
+                  onHideArchivedToggle={() => setHideArchived((v) => !v)}
+                  isAuthenticated={status === "authenticated"}
                   dateFrom={dateFrom}
                   dateTo={dateTo}
                   onDateFromChange={setDateFrom}

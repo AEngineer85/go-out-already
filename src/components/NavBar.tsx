@@ -1,11 +1,13 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Logo } from "@/components/Logo";
 
 export function NavBar() {
   const { data: session } = useSession();
+  const [interestedCount, setInterestedCount] = useState(0);
 
   const initials = session?.user?.name
     ?.split(" ")
@@ -13,6 +15,19 @@ export function NavBar() {
     .join("")
     .toUpperCase()
     .slice(0, 2) ?? "?";
+
+  // Fetch saved-events count for badge
+  useEffect(() => {
+    if (!session) return;
+    fetch("/api/swipe/stats")
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d.interestedCount === "number") {
+          setInterestedCount(d.interestedCount);
+        }
+      })
+      .catch(() => {});
+  }, [session]);
 
   return (
     <nav
@@ -30,6 +45,23 @@ export function NavBar() {
       <div className="flex items-center gap-3">
         {session ? (
           <>
+            <Link
+              href="/swipe"
+              className="text-[13px] text-[#555555] hover:text-[#111111]"
+            >
+              Swipe
+            </Link>
+            <Link
+              href="/interested"
+              className="relative flex items-center gap-1 text-[13px] text-[#555555] hover:text-[#111111]"
+            >
+              Saved
+              {interestedCount > 0 && (
+                <span className="text-[10px] font-medium text-white bg-[#2563EB] px-1.5 py-0.5 rounded-full leading-none">
+                  {interestedCount}
+                </span>
+              )}
+            </Link>
             <Link
               href="/settings"
               className="text-[13px] text-[#555555] hover:text-[#111111]"

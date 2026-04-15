@@ -16,6 +16,10 @@ model User {
   defaultReminderMinutes Int      @default(1440)
   alertEmail             String?
   createdAt              DateTime @default(now())
+
+  swipeActions      SwipeAction[]
+  tagPreferences    UserTagPreference[]
+  sourcePreferences UserSourcePreference[]
 }
 
 model Event {
@@ -39,6 +43,8 @@ model Event {
   addedToCalendar   Boolean  @default(false)
   calendarEventId   String?
   archived          Boolean  @default(false)
+
+  swipeActions SwipeAction[]
 }
 
 model CrawlLog {
@@ -51,4 +57,56 @@ model CrawlLog {
   eventsNew      Int       @default(0)
   errors         Json?
   success        Boolean   @default(false)
+}
+
+// ── Swipe Mode ──────────────────────────────────────────────────────────────────
+
+// Records every swipe decision a user makes on an event.
+// direction: "right" (interested) | "left" (archived/passed)
+// @@unique ensures a user can only have one active decision per event (re-swipe overwrites).
+model SwipeAction {
+  id        String   @id @default(uuid())
+  userId    String
+  eventId   String
+  direction String   // "right" | "left"
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@index([userId])
+  @@index([userId, direction])
+}
+
+// Per-user learned weight for each event tag.
+// Updated via EMA after every swipe. Drives the swipe queue ordering.
+model UserTagPreference {
+  id         String   @id @default(uuid())
+  userId     String
+  tag        String
+  weight     Float    @default(0)
+  swipeCount Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tag])
+  @@index([userId])
+}
+
+// Per-user learned weight for each event source (team, venue, org name).
+// Supplements tag weights for queue scoring.
+model UserSourcePreference {
+  id         String   @id @default(uuid())
+  userId     String
+  sourceName String
+  weight     Float    @default(0)
+  swipeCount Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sourceName])
+  @@index([userId])
 }
