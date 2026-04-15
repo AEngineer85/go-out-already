@@ -5,6 +5,23 @@ import type { RawEvent } from "../src/types";
 const now = new Date();
 const sixMonthsOut = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
 
+/** Convert a UTC date to a "HH:MM" string in Eastern Time */
+function toEasternTime(date: Date): string {
+  return date.toLocaleTimeString("en-US", {
+    timeZone: "America/New_York",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+/** Convert a UTC date to a YYYY-MM-DD string in Eastern Time */
+function toEasternDate(date: Date): string {
+  return date.toLocaleDateString("en-CA", {
+    timeZone: "America/New_York",
+  });
+}
+
 // ── Columbus Clippers (MiLB) ──────────────────────────────────────────────────
 // Uses the free MLB Stats API — no key required
 async function scrapeClippers(): Promise<RawEvent[]> {
@@ -28,17 +45,17 @@ async function scrapeClippers(): Promise<RawEvent[]> {
 
     for (const date of data.dates ?? []) {
       for (const game of date.games ?? []) {
-        const isHome = game.teams?.home?.team?.id === 445;
-        if (!isHome) continue; // only home games
+        // Hard check: only home games at Huntington Park
+        if (game.teams?.home?.team?.id !== 445) continue;
 
         const gameDate = new Date(game.gameDate);
-        const title = `Columbus Clippers vs. ${game.teams?.away?.team?.name}`;
+        const opponent = game.teams?.away?.team?.name ?? "Opponent";
         const venue = game.venue?.name || "Huntington Park";
 
         events.push({
-          title,
-          date: gameDate.toISOString().split("T")[0],
-          startTime: gameDate.toTimeString().slice(0, 5),
+          title: `Columbus Clippers vs. ${opponent}`,
+          date: toEasternDate(gameDate),
+          startTime: toEasternTime(gameDate),
           locationName: venue,
           address: "330 Huntington Park Ln, Columbus, OH 43215",
           sourceUrl: "https://www.milb.com/columbus",
@@ -63,16 +80,22 @@ async function scrapeBlueJackets(): Promise<RawEvent[]> {
     );
 
     for (const game of data.games ?? []) {
+      // Hard check: only home games at Nationwide Arena
+      if (game.homeTeam?.abbrev !== "CBJ") continue;
+
       const gameDate = new Date(game.gameDate);
       if (gameDate < now || gameDate > sixMonthsOut) continue;
-      if (game.homeTeam?.abbrev !== "CBJ") continue; // only home games
 
-      const opponent = game.awayTeam?.placeName?.default || "Opponent";
+      const opponent =
+        game.awayTeam?.placeName?.default ||
+        game.awayTeam?.commonName?.default ||
+        "Opponent";
+
       events.push({
         title: `Columbus Blue Jackets vs. ${opponent}`,
-        date: gameDate.toISOString().split("T")[0],
+        date: toEasternDate(gameDate),
         startTime: game.startTimeUTC
-          ? new Date(game.startTimeUTC).toTimeString().slice(0, 5)
+          ? toEasternTime(new Date(game.startTimeUTC))
           : undefined,
         locationName: "Nationwide Arena",
         address: "200 W Nationwide Blvd, Columbus, OH 43215",
@@ -87,39 +110,47 @@ async function scrapeBlueJackets(): Promise<RawEvent[]> {
 }
 
 // ── Columbus Crew (MLS) ───────────────────────────────────────────────────────
+// Uses the ESPN public API — more reliable than scraping the JS-rendered site
 async function scrapeCrew(): Promise<RawEvent[]> {
   const events: RawEvent[] = [];
   try {
     const { data } = await axios.get(
-      "https://www.columbuscrew.com/schedule",
-      {
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; GoOutAlready/1.0)" },
-        timeout: 15000,
-      }
+      "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/teams/183/schedule",
+      { timeout: 10000 }
     );
-    const $ = cheerio.load(data);
 
-    $("[class*='ScheduleTable'], [class*='schedule-game'], [class*='match']").each((_, el) => {
-      const dateText = $(el).find("[class*='date'], time").first().text().trim();
-      const opponent = $(el).find("[class*='opponent'], [class*='team']").first().text().trim();
-      const isHome = $(el).find("[class*='home']").length > 0 ||
-        $(el).text().toLowerCase().includes("nationwide");
+    for (const event of data.events ?? []) {
+      const competition = event.competitions?.[0];
+      if (!competition) continue;
 
-      if (!dateText || !isHome) return;
+      // Hard check: Columbus must be the home competitor
+      const homeTeam = competition.competitors?.find(
+        (c: { homeAway: string }) => c.homeAway === "home"
+      );
+      const isColumbusCrew =
+        homeTeam?.team?.abbreviation === "CLB" ||
+        homeTeam?.team?.displayName?.toLowerCase().includes("columbus");
+      if (!isColumbusCrew) continue;
 
-      const parsedDate = new Date(dateText);
-      if (isNaN(parsedDate.getTime())) return;
-      if (parsedDate < now || parsedDate > sixMonthsOut) return;
+      const gameDate = new Date(event.date);
+      if (isNaN(gameDate.getTime())) continue;
+      if (gameDate < now || gameDate > sixMonthsOut) continue;
+
+      const awayTeam = competition.competitors?.find(
+        (c: { homeAway: string }) => c.homeAway === "away"
+      );
+      const opponent = awayTeam?.team?.displayName ?? "Opponent";
 
       events.push({
-        title: `Columbus Crew vs. ${opponent || "Opponent"}`,
-        date: parsedDate.toISOString().split("T")[0],
+        title: `Columbus Crew vs. ${opponent}`,
+        date: toEasternDate(gameDate),
+        startTime: toEasternTime(gameDate),
         locationName: "Lower.com Field",
         address: "96 Columbus Crew Way, Columbus, OH 43211",
         sourceUrl: "https://www.columbuscrew.com/schedule",
         sourceName: "Columbus Crew",
       });
-    });
+    }
   } catch (err) {
     console.warn("[sportsSchedules] Crew error:", err);
   }
@@ -127,6 +158,25 @@ async function scrapeCrew(): Promise<RawEvent[]> {
 }
 
 // ── Ohio State Athletics ──────────────────────────────────────────────────────
+// Columbus home venues — used to filter out away games
+const OSU_HOME_VENUES = [
+  "ohio stadium",
+  "value city arena",
+  "schottenstein center",
+  "huntington park",   // shared for some events
+  "jesse owens",
+  "bill davis stadium",
+  "nick swisher field",
+  "columbus",
+  "columbus, ohio",
+  "columbus, oh",
+];
+
+function isOSUHomeVenue(location: string): boolean {
+  const l = location.toLowerCase();
+  return OSU_HOME_VENUES.some((v) => l.includes(v));
+}
+
 async function scrapeOhioState(): Promise<RawEvent[]> {
   const events: RawEvent[] = [];
   try {
@@ -146,6 +196,10 @@ async function scrapeOhioState(): Promise<RawEvent[]> {
       const link = $(el).find("a").first().attr("href") || "";
 
       if (!title || !dateText) return;
+
+      // Hard check: only show events at Columbus venues
+      if (location && !isOSUHomeVenue(location)) return;
+
       const parsedDate = new Date(dateText);
       if (isNaN(parsedDate.getTime())) return;
       if (parsedDate < now || parsedDate > sixMonthsOut) return;
@@ -153,7 +207,7 @@ async function scrapeOhioState(): Promise<RawEvent[]> {
       events.push({
         title: `Ohio State: ${title}`,
         date: parsedDate.toISOString().split("T")[0],
-        locationName: location || "Ohio State Campus",
+        locationName: location || "Ohio State Campus, Columbus",
         sourceUrl: link.startsWith("http") ? link : `https://ohiostatebuckeyes.com${link}`,
         sourceName: "Ohio State Athletics",
       });
@@ -172,6 +226,8 @@ export async function scrapeSportsSchedules(): Promise<RawEvent[]> {
     scrapeOhioState(),
   ]);
 
-  console.log(`[sportsSchedules] Clippers: ${clippers.length}, Blue Jackets: ${jackets.length}, Crew: ${crew.length}, OSU: ${osu.length}`);
+  console.log(
+    `[sportsSchedules] Clippers: ${clippers.length}, Blue Jackets: ${jackets.length}, Crew: ${crew.length}, OSU: ${osu.length}`
+  );
   return [...clippers, ...jackets, ...crew, ...osu];
 }
