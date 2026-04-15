@@ -43,10 +43,7 @@ const ICS_FEEDS: ICSFeedConfig[] = [
     url: "https://www.dublin.oh.us/events/?ical=1",
     sourceName: "City of Dublin",
   },
-  {
-    url: "https://www.delawareohio.net/events/?ical=1",
-    sourceName: "City of Delaware",
-  },
+  // City of Delaware ICS blocked by Akamai WAF (403) — covered by Visit Delaware Ohio REST API instead
   {
     url: "https://www.hilliardohio.gov/events/?ical=1",
     sourceName: "City of Hilliard",
