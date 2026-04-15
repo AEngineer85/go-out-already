@@ -1,8 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
   <!-- Blue rounded square background -->
   <rect width="32" height="32" rx="6" fill="#2563EB"/>
-  <!-- White map pin / location marker -->
-  <path d="M16 3C10.48 3 6 7.48 6 13C6 20.25 16 29 16 29C16 29 26 20.25 26 13C26 7.48 21.52 3 16 3Z" fill="white"/>
-  <!-- Blue 5-pointed star inside pin head -->
-  <path d="M16 7.5 L17.18 10.88 L20.78 10.88 L17.9 12.94 L19.08 16.32 L16 14.26 L12.92 16.32 L14.1 12.94 L11.22 10.88 L14.82 10.88 Z" fill="#2563EB"/>
+  <!-- Calendar body -->
+  <rect x="6" y="10" width="20" height="16" rx="2.5" fill="white"/>
+  <!-- Calendar header bar -->
+  <rect x="6" y="10" width="20" height="6" rx="2.5" fill="white"/>
+  <rect x="6" y="13" width="20" height="3" fill="white"/>
+  <!-- Calendar binding pegs -->
+  <line x1="11" y1="8" x2="11" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="21" y1="8" x2="21" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <!-- Star badge (bottom-right) -->
+  <circle cx="22" cy="22" r="5" fill="#2563EB"/>
+  <path d="M22 18.5 L22.9 21.2 L25.8 21.2 L23.45 22.9 L24.35 25.6 L22 23.9 L19.65 25.6 L20.55 22.9 L18.2 21.2 L21.1 21.2 Z" fill="white"/>
 </svg>

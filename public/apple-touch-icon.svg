@@ -1,8 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
   <!-- Blue rounded square background -->
   <rect width="180" height="180" rx="32" fill="#2563EB"/>
-  <!-- White map pin / location marker -->
-  <path d="M90 17C58.97 17 34 41.97 34 73C34 113.91 90 163 90 163C90 163 146 113.91 146 73C146 41.97 121.03 17 90 17Z" fill="white"/>
-  <!-- Blue 5-pointed star inside pin head -->
-  <path d="M90 42 L96.18 61.18 L116.51 61.18 L100.66 73.62 L106.84 92.8 L90 80.36 L73.16 92.8 L79.34 73.62 L63.49 61.18 L83.82 61.18 Z" fill="#2563EB"/>
+  <!-- Calendar body -->
+  <rect x="28" y="55" width="124" height="100" rx="14" fill="white"/>
+  <!-- Calendar header bar -->
+  <rect x="28" y="55" width="124" height="36" rx="14" fill="white"/>
+  <rect x="28" y="75" width="124" height="16" fill="white"/>
+  <!-- Calendar binding pegs -->
+  <line x1="68" y1="42" x2="68" y2="68" stroke="white" stroke-width="11" stroke-linecap="round"/>
+  <line x1="112" y1="42" x2="112" y2="68" stroke="white" stroke-width="11" stroke-linecap="round"/>
+  <!-- Star badge (bottom-right) -->
+  <circle cx="128" cy="128" r="32" fill="#2563EB"/>
+  <path d="M128 106 L133.9 123.3 L152.1 123.3 L137.9 133.7 L143.8 151 L128 140.6 L112.2 151 L118.1 133.7 L103.9 123.3 L122.1 123.3 Z" fill="white"/>
 </svg>
