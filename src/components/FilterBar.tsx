@@ -9,6 +9,9 @@ interface FilterBarProps {
   onRecentlyAddedToggle: () => void;
   hideAdded: boolean;
   onHideAddedToggle: () => void;
+  hideArchived: boolean;
+  onHideArchivedToggle: () => void;
+  isAuthenticated: boolean;
   dateFrom: string;
   dateTo: string;
   onDateFromChange: (val: string) => void;
@@ -24,6 +27,9 @@ export function FilterBar({
   onRecentlyAddedToggle,
   hideAdded,
   onHideAddedToggle,
+  hideArchived,
+  onHideArchivedToggle,
+  isAuthenticated,
   dateFrom,
   dateTo,
   onDateFromChange,
@@ -110,6 +116,29 @@ export function FilterBar({
         >
           Hide added
         </button>
+
+        {isAuthenticated && (
+          <button
+            onClick={onHideArchivedToggle}
+            className="px-3 py-1 rounded-[20px] text-[12px] transition-all"
+            style={
+              hideArchived
+                ? {
+                    backgroundColor: "#E6F1FB",
+                    color: "#185FA5",
+                    border: "0.5px solid #93C5FD",
+                    fontWeight: 500,
+                  }
+                : {
+                    backgroundColor: "transparent",
+                    color: "#555555",
+                    border: "0.5px solid rgba(0,0,0,0.2)",
+                  }
+            }
+          >
+            Hide archived
+          </button>
+        )}
 
         <div className="ml-auto flex items-center gap-2">
           <input

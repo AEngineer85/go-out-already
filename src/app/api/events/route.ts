@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
   const radius = searchParams.get("radius");
   const recentlyAdded = searchParams.get("recentlyAdded") === "true";
   const hideAdded = searchParams.get("hideAdded") === "true";
+  const hideArchived = searchParams.get("hideArchived") === "true";
 
   const now = new Date();
   const sixMonthsOut = new Date(now);
@@ -35,6 +36,23 @@ export async function GET(request: NextRequest) {
 
   if (hideAdded) {
     where.addedToCalendar = false;
+  }
+
+  // Exclude events the user has left-swiped (archived via swipe mode)
+  if (hideArchived) {
+    const user = await prisma.user.findUnique({
+      where: { googleId: session.user.id },
+      select: { id: true },
+    });
+    if (user) {
+      const archivedSwipes = await prisma.swipeAction.findMany({
+        where: { userId: user.id, direction: "left" },
+        select: { eventId: true },
+      });
+      if (archivedSwipes.length > 0) {
+        where.id = { notIn: archivedSwipes.map((s) => s.eventId) };
+      }
+    }
   }
 
   if (recentlyAdded) {
