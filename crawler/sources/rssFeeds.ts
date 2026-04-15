@@ -14,16 +14,6 @@ const RSS_FEEDS: RSSFeedConfig[] = [
     url: "https://www.614now.com/feed",
     sourceName: "614 Magazine",
   },
-  // Columbus Monthly
-  {
-    url: "https://www.columbusmonthly.com/rss/news",
-    sourceName: "Columbus Monthly",
-  },
-  // Experience Columbus blog/news
-  {
-    url: "https://www.experiencecolumbus.com/blog/feed/",
-    sourceName: "Experience Columbus",
-  },
   // Short North Arts District
   {
     url: "https://www.shortnorth.org/feed",

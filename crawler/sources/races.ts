@@ -1,6 +1,5 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { chromium } from "playwright";
 import type { RawEvent } from "../src/types";
 
 const now = new Date();
@@ -114,63 +113,11 @@ async function scrapeRunSignUp(): Promise<RawEvent[]> {
 }
 
 // ── Columbus Marathon & Half Marathon ─────────────────────────────────────────
-// Site is Wix (JS-rendered) — Cheerio gets a blank page. Use Playwright to
-// extract the race date dynamically so we can keep the hardcoded entry current.
-// Falls back gracefully; the KNOWN_MAJOR_RACES list ensures the event still
-// appears even if Playwright can't extract an updated date.
+// Site is Wix (JS-rendered) — cannot be scraped with Cheerio or Playwright.
+// Playwright was removed to prevent OOM crashes on the Render free tier.
+// KNOWN_MAJOR_RACES above handles reliable coverage with hardcoded confirmed dates.
 async function scrapeColumbusMarathon(): Promise<RawEvent[]> {
-  const events: RawEvent[] = [];
-  let browser;
-  try {
-    browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
-    await page.goto("https://www.columbusmarathon.com", {
-      waitUntil: "domcontentloaded",
-      timeout: 30000,
-    });
-    await page.waitForTimeout(3000); // let Wix JS render
-
-    // Look for a date in the rendered DOM
-    const dateText = await page.evaluate(() => {
-      const selectors = [
-        "[class*='race-date']",
-        "[class*='event-date']",
-        "[class*='date']",
-        "time",
-        "h2",
-        "h3",
-      ];
-      for (const sel of selectors) {
-        const el = document.querySelector(sel);
-        if (el) {
-          const text = el.textContent?.trim() || "";
-          if (/202[5-9]/.test(text)) return text;
-        }
-      }
-      return "";
-    });
-
-    if (dateText) {
-      const parsedDate = new Date(dateText);
-      if (!isNaN(parsedDate.getTime()) && parsedDate >= now && parsedDate <= sixMonthsOut) {
-        events.push({
-          title: "Nationwide Children's Columbus Marathon & Half Marathon",
-          description: "Annual Columbus Marathon weekend — full marathon, half marathon, and more through downtown Columbus.",
-          date: parsedDate.toISOString().split("T")[0],
-          startTime: "07:30",
-          locationName: "Nationwide Arena / Downtown Columbus",
-          address: "200 W Nationwide Blvd, Columbus, OH 43215",
-          sourceUrl: "https://www.columbusmarathon.com",
-          sourceName: "Columbus Marathon",
-        });
-      }
-    }
-  } catch (err) {
-    console.warn("[races] Columbus Marathon (Playwright) error:", err);
-  } finally {
-    if (browser) await browser.close();
-  }
-  return events;
+  return [];
 }
 
 // ── OhioRaces.com (fixed) ─────────────────────────────────────────────────────
