@@ -10,6 +10,7 @@ import { scrapeSportsSchedules } from "../sources/sportsSchedules";
 import { scrapeRaces } from "../sources/races";
 import { scrapeVenueList } from "../sources/schemaOrgScraper";
 import { scrapeHenmick } from "../sources/henmick";
+import { scrapeAlumCreekMarina } from "../sources/alumCreekMarina";
 import type { RawEvent } from "./types";
 
 const prisma = new PrismaClient();
@@ -61,6 +62,7 @@ export async function runCrawl(): Promise<{
     () => runSource("Races", scrapeRaces),
     () => runSource("Venue List (schema.org)", scrapeVenueList),
     () => runSource("Henmick Farm & Brewery", scrapeHenmick),
+    () => runSource("Alum Creek Marina", scrapeAlumCreekMarina),
   ];
 
   for (const runner of sourceRunners) {
