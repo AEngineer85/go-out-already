@@ -27,6 +27,7 @@ export default function SwipePage() {
   const [toast, setToast] = useState<string | null>(null);
   const [reviewedCount, setReviewedCount] = useState(0);
   const [prefetching, setPrefetching] = useState(false);
+  const [queueError, setQueueError] = useState<string | null>(null);
 
   // Calendar modal state
   const [calendarEvent, setCalendarEvent] = useState<SwipeEvent | null>(null);
@@ -65,11 +66,18 @@ export default function SwipePage() {
 
   async function loadQueue() {
     setLoading(true);
+    setQueueError(null);
     try {
       const res = await fetch("/api/swipe/queue?limit=20");
       const data = await res.json();
-      setQueue(data.events ?? []);
-    } catch {
+      if (!res.ok) {
+        setQueueError(`API error ${res.status}: ${data.error ?? JSON.stringify(data)}`);
+        setQueue([]);
+      } else {
+        setQueue(data.events ?? []);
+      }
+    } catch (e) {
+      setQueueError(`Network error: ${e instanceof Error ? e.message : String(e)}`);
       setQueue([]);
     } finally {
       setLoading(false);
@@ -217,7 +225,12 @@ export default function SwipePage() {
           </p>
         </div>
 
-        {queue.length === 0 ? (
+        {queueError ? (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-[12px] text-red-700 font-mono break-all">
+            <p className="font-semibold mb-1">Could not load events:</p>
+            <p>{queueError}</p>
+          </div>
+        ) : queue.length === 0 ? (
           <EmptySwipeState reviewedCount={reviewedCount} />
         ) : (
           <>
