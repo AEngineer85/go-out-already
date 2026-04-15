@@ -60,10 +60,8 @@ export async function scrapeVisitDelawareOhio(): Promise<RawEvent[]> {
         params: {
           per_page: PER_PAGE,
           page,
-          orderby: "meta_value_num",
-          meta_key: "start_time",
+          orderby: "event_date",
           order: "asc",
-          // Only fetch events whose post date is after yesterday (approximate proxy)
           after: new Date(now.getTime() - 86400000).toISOString(),
         },
         headers: {
