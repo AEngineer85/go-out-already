@@ -3,6 +3,11 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 import { encrypt } from "@/lib/crypto";
 
+/** Keywords blocked by default for every new user. They can remove these in Settings. */
+export const DEFAULT_BLOCKED_KEYWORDS = [
+  "hike", "walk", "weekender", "symphony", "boating", "artist", "java", "theatre",
+];
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     GoogleProvider({
@@ -36,6 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           googleId,
           email,
           refreshToken: refreshToken ? encrypt(refreshToken) : null,
+          blockedKeywords: DEFAULT_BLOCKED_KEYWORDS,
         },
       });
 
