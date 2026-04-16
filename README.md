@@ -29,7 +29,11 @@ cd crawler && npx prisma generate && cd ..
 
 # Run locally
 npm run dev                    # Next.js app at localhost:3000
+npm test                       # Run test suite (Vitest, 46 tests)
 cd crawler && npm run crawl    # Run crawler once
+
+# One-time: backfill lat/lng for events missing coordinates
+cd crawler && DATABASE_URL="..." npx ts-node --project tsconfig.json src/backfill-geocode.ts
 ```
 
 ## Tech Stack
@@ -44,7 +48,7 @@ cd crawler && npm run crawl    # Run crawler once
 | ICS/iCal | node-ical | — |
 | RSS | rss-parser | — |
 | Sports APIs | MiLB Stats API, NHL API | Free, no key |
-| Geocoding | Nominatim (OpenStreetMap) | Free, no key |
+| Geocoding | Photon (Komoot/OSM) | Free, no key |
 | Email alerts | Nodemailer + Gmail SMTP | Free |
 | Calendar | Google Calendar API v3 | Free |
 | Animation | framer-motion v11 | — |
