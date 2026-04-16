@@ -1,8 +1,12 @@
 import axios from "axios";
 
-interface NominatimResult {
-  lat: string;
-  lon: string;
+interface PhotonFeature {
+  geometry: { coordinates: [number, number] }; // [lng, lat]
+  properties: { countrycode?: string };
+}
+
+interface PhotonResponse {
+  features: PhotonFeature[];
 }
 
 const geocodeCache = new Map<string, { lat: number; lng: number } | null>();
@@ -17,27 +21,22 @@ export async function geocodeAddress(
   }
 
   try {
-    const response = await axios.get<NominatimResult[]>(
-      "https://nominatim.openstreetmap.org/search",
+    const response = await axios.get<PhotonResponse>(
+      "https://photon.komoot.io/api/",
       {
-        params: {
-          q: address,
-          format: "json",
-          limit: 1,
-          countrycodes: "us",
-        },
-        headers: {
-          "User-Agent": "GoOutAlready/1.0 (go-out-already@example.com)",
-        },
-        timeout: 5000,
+        params: { q: address, limit: 1, lang: "en" },
+        timeout: 8000,
       }
     );
 
-    if (response.data.length > 0) {
-      const result = {
-        lat: parseFloat(response.data[0].lat),
-        lng: parseFloat(response.data[0].lon),
-      };
+    const features = response.data.features ?? [];
+    const usFeature = features.find(
+      (f) => !f.properties.countrycode || f.properties.countrycode === "US"
+    ) ?? features[0];
+
+    if (usFeature) {
+      const [lng, lat] = usFeature.geometry.coordinates;
+      const result = { lat, lng };
       geocodeCache.set(key, result);
       return result;
     }

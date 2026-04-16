@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
   const radiusFiltered =
     user.homeLat != null && user.homeLng != null
       ? candidates.filter((e) => {
-          if (e.lat == null || e.lng == null) return true; // no coords → include
+          if (e.lat == null || e.lng == null) return false; // unknown location → exclude when radius is set
           return (
             distanceMiles(user.homeLat!, user.homeLng!, e.lat, e.lng) <=
             (user.defaultRadiusMiles ?? 25)
