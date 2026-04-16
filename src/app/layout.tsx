@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SessionProvider } from "@/components/SessionProvider";
 import { auth } from "@/lib/auth";
@@ -10,6 +10,12 @@ export const metadata: Metadata = {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
     apple: [{ url: "/apple-touch-icon.svg", type: "image/svg+xml" }],
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default async function RootLayout({

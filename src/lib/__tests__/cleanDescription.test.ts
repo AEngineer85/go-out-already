@@ -48,4 +48,16 @@ describe("cleanDescription", () => {
   it("handles empty string", () => {
     expect(cleanDescription("")).toBe("");
   });
+
+  it("strips Divi/WordPress shortcodes", () => {
+    expect(
+      cleanDescription("[et_pb_section fb_built= 1 _builder_version= 4.20.4]Join us for a great event.[/et_pb_section]")
+    ).toBe("Join us for a great event.");
+  });
+
+  it("strips shortcodes and leaves surrounding text", () => {
+    expect(
+      cleanDescription("[et_pb_row][et_pb_column type= 4_4 ][et_pb_text] Come join us for fun. [/et_pb_text][/et_pb_column][/et_pb_row]")
+    ).toBe("Come join us for fun.");
+  });
 });
