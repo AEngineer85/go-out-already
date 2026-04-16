@@ -32,6 +32,7 @@ export default function SwipePage() {
   const [calendarEvent, setCalendarEvent] = useState<SwipeEvent | null>(null);
   const [calendarLoading, setCalendarLoading] = useState(false);
   const [defaultReminderMinutes, setDefaultReminderMinutes] = useState(1440);
+  const [unswipedCount, setUnswipedCount] = useState<number | null>(null);
 
   const cardRef = useRef<SwipeCardHandle>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,6 +46,10 @@ export default function SwipePage() {
     fetch("/api/user/preferences")
       .then((r) => r.json())
       .then((d) => { if (d.defaultReminderMinutes) setDefaultReminderMinutes(d.defaultReminderMinutes); })
+      .catch(() => {});
+    fetch("/api/swipe/stats")
+      .then((r) => r.json())
+      .then((d) => { if (typeof d.unswipedCount === "number") setUnswipedCount(d.unswipedCount); })
       .catch(() => {});
   }, [status]);
 
@@ -100,6 +105,7 @@ export default function SwipePage() {
     setSwiping(true);
     setQueue((prev) => prev.filter((e) => e.id !== event.id));
     setReviewedCount((c) => c + 1);
+    setUnswipedCount((c) => (c !== null ? Math.max(0, c - 1) : null));
     try {
       const res = await fetch("/api/swipe", {
         method: "POST",
@@ -123,6 +129,7 @@ export default function SwipePage() {
       await fetch(`/api/swipe/${lastSwipe.swipeId}`, { method: "DELETE" });
       setQueue((prev) => [lastSwipe.event, ...prev]);
       setReviewedCount((c) => Math.max(0, c - 1));
+      setUnswipedCount((c) => (c !== null ? c + 1 : null));
       setLastSwipe(null);
       showToast("Undone");
     } catch {
@@ -221,9 +228,11 @@ export default function SwipePage() {
             </div>
 
             {/* Queue count */}
-            <p className="mt-3 text-center text-[11px] text-on-surface-variant/60">
-              {queue.length} event{queue.length !== 1 ? "s" : ""} to review
-            </p>
+            {unswipedCount !== null && (
+              <p className="mt-3 text-center text-[11px] text-on-surface-variant/60">
+                {unswipedCount} event{unswipedCount !== 1 ? "s" : ""} to review
+              </p>
+            )}
           </>
         )}
       </main>

@@ -16,9 +16,23 @@ export async function GET() {
     return NextResponse.json({ interestedCount: 0 });
   }
 
-  const interestedCount = await prisma.swipeAction.count({
-    where: { userId: user.id, direction: "right" },
-  });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  return NextResponse.json({ interestedCount });
+  const [interestedCount, swipedIds, totalUpcoming] = await Promise.all([
+    prisma.swipeAction.count({
+      where: { userId: user.id, direction: "right" },
+    }),
+    prisma.swipeAction.findMany({
+      where: { userId: user.id },
+      select: { eventId: true },
+    }),
+    prisma.event.count({
+      where: { archived: false, date: { gte: today } },
+    }),
+  ]);
+
+  const unswipedCount = Math.max(0, totalUpcoming - swipedIds.length);
+
+  return NextResponse.json({ interestedCount, unswipedCount });
 }
