@@ -5,44 +5,45 @@ import { getEventVisual } from "@/lib/tagIcons";
 interface SwipeEventVisualProps {
   tags: string[];
   title: string;
+  badge?: string;
 }
 
-export function SwipeEventVisual({ tags, title }: SwipeEventVisualProps) {
+export function SwipeEventVisual({ tags, title, badge }: SwipeEventVisualProps) {
   const visual = getEventVisual(tags);
   const [from, to] = visual.gradient;
 
   return (
     <div
-      className="relative w-full h-36 rounded-t-2xl overflow-hidden flex-shrink-0"
+      className="relative w-full h-3/5 overflow-hidden flex-shrink-0"
       style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
     >
       {/* Centered icon */}
-      <div className="absolute inset-0 flex items-center justify-center pb-6">
+      <div className="absolute inset-0 flex items-center justify-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-          strokeWidth={1.4}
+          strokeWidth={1.2}
           stroke={visual.iconColor}
-          className="w-14 h-14 opacity-80"
+          className="w-24 h-24 opacity-20"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d={visual.iconPath}
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d={visual.iconPath} />
         </svg>
       </div>
 
-      {/* Title scrim + text */}
-      <div
-        className="absolute bottom-0 left-0 right-0 px-4 pb-3 pt-6"
-        style={{
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)",
-        }}
-      >
-        <p className="text-white text-[15px] font-semibold leading-tight line-clamp-2">
+      {/* Bottom gradient scrim */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+
+      {/* Badge chip — top left */}
+      {badge && (
+        <div className="absolute top-5 left-5 bg-tertiary text-on-tertiary px-4 py-1.5 rounded-full text-[11px] font-headline font-bold tracking-wide shadow-lg">
+          {badge}
+        </div>
+      )}
+
+      {/* Title overlaid at bottom of image */}
+      <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+        <p className="text-white text-[17px] font-headline font-bold leading-snug line-clamp-2 text-balance">
           {title}
         </p>
       </div>

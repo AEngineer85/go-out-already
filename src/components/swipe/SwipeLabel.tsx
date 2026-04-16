@@ -13,13 +13,13 @@ export function SwipeLabel({ type, opacity }: SwipeLabelProps) {
   return (
     <motion.div
       style={{ opacity }}
-      className={`absolute top-4 px-3 py-1 rounded-full border-2 font-bold text-[13px] tracking-wider z-10 ${
+      className={`absolute top-5 px-4 py-1.5 rounded-full border-2 font-headline font-bold text-[12px] tracking-widest z-10 ${
         isInterested
-          ? "left-4 border-[#16A34A] text-[#16A34A] bg-white/90"
-          : "right-4 border-[#DC2626] text-[#DC2626] bg-white/90"
+          ? "left-5 border-[#16A34A] text-[#16A34A] bg-white/90"
+          : "right-5 border-error text-error bg-white/90"
       }`}
     >
-      {isInterested ? "INTERESTED" : "PASS"}
+      {isInterested ? "SAVE" : "PASS"}
     </motion.div>
   );
 }

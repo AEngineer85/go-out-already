@@ -19,24 +19,25 @@ export function SwipeCardStack({
   const topThree = events.slice(0, 3);
 
   return (
-    <div className="relative w-full" style={{ height: 480 }}>
-      {/* Render back cards first (bottom of DOM = visually behind) */}
+    <div className="relative w-full h-full">
+      {/* Back cards — stack effect */}
       {topThree
         .slice(1)
         .reverse()
         .map((event, reversedIdx) => {
-          // reversedIdx 0 = card at index 2 (back), 1 = card at index 1 (middle)
           const stackIdx = topThree.length - 1 - reversedIdx; // 2 or 1
-          const scale = stackIdx === 1 ? 0.95 : 0.9;
-          const translateY = stackIdx === 1 ? 8 : 16;
+          const scale = stackIdx === 1 ? 0.95 : 0.90;
+          const translateY = stackIdx === 1 ? 10 : 20;
+          const opacity = stackIdx === 1 ? 0.6 : 0.35;
 
           return (
             <div
               key={event.id}
-              className="absolute inset-0 bg-white rounded-2xl shadow"
+              className="absolute inset-0 bg-surface-container-low rounded-xl"
               style={{
                 transform: `scale(${scale}) translateY(${translateY}px)`,
                 transformOrigin: "bottom center",
+                opacity,
               }}
             />
           );
