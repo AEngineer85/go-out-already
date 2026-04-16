@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { distanceMiles } from "@/lib/geocode";
+import { distanceMiles, geocodeAddress } from "@/lib/geocode";
 import {
   computePersonalScore,
   computeKeywordBoost,
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
       defaultRadiusMiles: true,
       homeLat: true,
       homeLng: true,
+      homeZipCode: true,
       recencyBias: true,
       blockWorkHours: true,
       workStartHour: true,
@@ -43,6 +44,19 @@ export async function GET(request: NextRequest) {
   });
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  // If zip was saved but geocoding previously failed, resolve it now and persist
+  if (user.homeLat == null && user.homeZipCode) {
+    const coords = await geocodeAddress(`${user.homeZipCode}, USA`);
+    if (coords) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { homeLat: coords.lat, homeLng: coords.lng },
+      });
+      user.homeLat = coords.lat;
+      user.homeLng = coords.lng;
+    }
   }
 
   // Count total swipes for cold-start detection
