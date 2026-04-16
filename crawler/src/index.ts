@@ -149,7 +149,22 @@ export async function runCrawl(): Promise<{
         date,
       });
 
-      const existing = await prisma.event.findUnique({ where: { fingerprintHash: fp } });
+      let existing = await prisma.event.findUnique({ where: { fingerprintHash: fp } });
+
+      // Secondary dedup: if fingerprint miss, check for same title+date+location
+      // (guards against algorithm changes causing duplicate rows)
+      if (!existing) {
+        existing = await prisma.event.findFirst({
+          where: { title: event.title, date, locationName: event.locationName },
+        }) ?? null;
+        if (existing) {
+          // Update the stored hash to the current algorithm so future runs hit on fp
+          await prisma.event.update({
+            where: { id: existing.id },
+            data: { fingerprintHash: fp },
+          }).catch(() => {/* another concurrent crawl may have already updated it */});
+        }
+      }
 
       if (existing) {
         // Merge additional sources
