@@ -19,6 +19,20 @@ import type { RawEvent } from "./types";
 
 const prisma = new PrismaClient();
 
+/** Strip HTML tags and decode entities from raw description text before storing. */
+function cleanDescription(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  let text = raw
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+    .replace(/&#039;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/&#\d+;/g, " ");
+  text = text.replace(/<[^>]+>/g, " ");
+  text = text.replace(/\s{2,}/g, " ").trim();
+  return text || undefined;
+}
+
 interface SourceResult {
   name: string;
   events: RawEvent[];
@@ -161,7 +175,7 @@ export async function runCrawl(): Promise<{
         await prisma.event.create({
           data: {
             title: event.title,
-            description: event.description,
+            description: cleanDescription(event.description),
             date,
             startTime: event.startTime,
             endTime: event.endTime,

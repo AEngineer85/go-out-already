@@ -63,11 +63,17 @@ function formatDate(dateStr: string): string {
 
 /** Decode HTML entities and strip any remaining tags from description text */
 function cleanDescription(raw: string): string {
-  return raw
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&nbsp;/g, " ")
-    .replace(/\s{2,}/g, " ").trim();
+  // Decode entities FIRST (handles double-encoded HTML like &lt;p&gt; → <p>)
+  let text = raw
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+    .replace(/&#039;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/&#\d+;/g, " ");
+  // Strip HTML tags after entity decoding
+  text = text.replace(/<[^>]+>/g, " ");
+  // Collapse whitespace
+  return text.replace(/\s{2,}/g, " ").trim();
 }
 
 function formatTime(time: string | null | undefined): string | null {

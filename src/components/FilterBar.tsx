@@ -20,6 +20,29 @@ interface FilterBarProps {
 
 const ALL_TAGS = Object.keys(TAG_STYLES);
 
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-full text-[12px] font-headline font-bold transition-all active:scale-95 duration-200 ${
+        active
+          ? "bg-primary text-on-primary shadow-sm"
+          : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function FilterBar({
   selectedTags,
   onTagToggle,
@@ -36,108 +59,32 @@ export function FilterBar({
   onDateToChange,
 }: FilterBarProps) {
   return (
-    <div
-      className="bg-white rounded-[10px] px-3 py-3"
-      style={{ border: "0.5px solid rgba(0,0,0,0.12)" }}
-    >
+    <div className="bg-surface-container-lowest rounded-xl px-4 py-4 space-y-3 border border-outline-variant/20">
       {/* Tag filters */}
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex flex-wrap gap-2">
         {ALL_TAGS.map((tag) => {
           const active = selectedTags.includes(tag);
           const style = TAG_STYLES[tag];
           return (
-            <button
-              key={tag}
-              onClick={() => onTagToggle(tag)}
-              className="px-3 py-1 rounded-[20px] text-[12px] transition-all"
-              style={
-                active
-                  ? {
-                      backgroundColor: "#E6F1FB",
-                      color: "#185FA5",
-                      border: "0.5px solid #93C5FD",
-                      fontWeight: 500,
-                    }
-                  : {
-                      backgroundColor: "transparent",
-                      color: "#555555",
-                      border: "0.5px solid rgba(0,0,0,0.2)",
-                    }
-              }
-            >
+            <FilterChip key={tag} active={active} onClick={() => onTagToggle(tag)}>
               {style.label}
-            </button>
+            </FilterChip>
           );
         })}
       </div>
 
-      {/* Divider + utility filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="w-px h-5 bg-black/10" />
-
-        <button
-          onClick={onRecentlyAddedToggle}
-          className="px-3 py-1 rounded-[20px] text-[12px] transition-all"
-          style={
-            recentlyAdded
-              ? {
-                  backgroundColor: "#E6F1FB",
-                  color: "#185FA5",
-                  border: "0.5px solid #93C5FD",
-                  fontWeight: 500,
-                }
-              : {
-                  backgroundColor: "transparent",
-                  color: "#555555",
-                  border: "0.5px solid rgba(0,0,0,0.2)",
-                }
-          }
-        >
+      {/* Utility filters + date range */}
+      <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-outline-variant/10">
+        <FilterChip active={recentlyAdded} onClick={onRecentlyAddedToggle}>
           Recently added
-        </button>
-
-        <button
-          onClick={onHideAddedToggle}
-          className="px-3 py-1 rounded-[20px] text-[12px] transition-all"
-          style={
-            hideAdded
-              ? {
-                  backgroundColor: "#E6F1FB",
-                  color: "#185FA5",
-                  border: "0.5px solid #93C5FD",
-                  fontWeight: 500,
-                }
-              : {
-                  backgroundColor: "transparent",
-                  color: "#555555",
-                  border: "0.5px solid rgba(0,0,0,0.2)",
-                }
-          }
-        >
+        </FilterChip>
+        <FilterChip active={hideAdded} onClick={onHideAddedToggle}>
           Hide added
-        </button>
-
+        </FilterChip>
         {isAuthenticated && (
-          <button
-            onClick={onHideArchivedToggle}
-            className="px-3 py-1 rounded-[20px] text-[12px] transition-all"
-            style={
-              hideArchived
-                ? {
-                    backgroundColor: "#E6F1FB",
-                    color: "#185FA5",
-                    border: "0.5px solid #93C5FD",
-                    fontWeight: 500,
-                  }
-                : {
-                    backgroundColor: "transparent",
-                    color: "#555555",
-                    border: "0.5px solid rgba(0,0,0,0.2)",
-                  }
-            }
-          >
+          <FilterChip active={hideArchived} onClick={onHideArchivedToggle}>
             Hide archived
-          </button>
+          </FilterChip>
         )}
 
         <div className="ml-auto flex items-center gap-2">
@@ -145,16 +92,14 @@ export function FilterBar({
             type="date"
             value={dateFrom}
             onChange={(e) => onDateFromChange(e.target.value)}
-            className="text-[12px] text-[#555555] border rounded-[8px] px-2 py-1"
-            style={{ borderColor: "rgba(0,0,0,0.2)" }}
+            className="text-[12px] text-on-surface bg-surface-container border border-outline-variant/30 rounded-full px-3 py-1.5 outline-none focus:ring-2 focus:ring-primary/20"
           />
-          <span className="text-[12px] text-[#999]">to</span>
+          <span className="text-[12px] text-on-surface-variant font-headline">to</span>
           <input
             type="date"
             value={dateTo}
             onChange={(e) => onDateToChange(e.target.value)}
-            className="text-[12px] text-[#555555] border rounded-[8px] px-2 py-1"
-            style={{ borderColor: "rgba(0,0,0,0.2)" }}
+            className="text-[12px] text-on-surface bg-surface-container border border-outline-variant/30 rounded-full px-3 py-1.5 outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
       </div>

@@ -1,5 +1,4 @@
 import axios from "axios";
-import * as cheerio from "cheerio";
 import type { RawEvent } from "../src/types";
 import { toEasternHHMM, toEasternDateStr } from "../src/timeUtils";
 
@@ -141,61 +140,63 @@ async function scrapeCrew(): Promise<RawEvent[]> {
   return events;
 }
 
-// ── Ohio State Athletics ──────────────────────────────────────────────────────
-// Columbus home venues — used to filter out away games
-const OSU_HOME_VENUES = [
-  "ohio stadium",
-  "value city arena",
-  "schottenstein center",
-  "huntington park",   // shared for some events
-  "jesse owens",
-  "bill davis stadium",
-  "nick swisher field",
-  "columbus",
-  "columbus, ohio",
-  "columbus, oh",
-];
-
-function isOSUHomeVenue(location: string): boolean {
-  const l = location.toLowerCase();
-  return OSU_HOME_VENUES.some((v) => l.includes(v));
-}
-
+// ── Ohio State Football ───────────────────────────────────────────────────────
+// Uses the ESPN public API (team ID 194 = Ohio State) — covers all home games
+// including the spring game/scrimmage which the cheerio-based scraper missed.
 async function scrapeOhioState(): Promise<RawEvent[]> {
   const events: RawEvent[] = [];
   try {
     const { data } = await axios.get(
-      "https://ohiostatebuckeyes.com/calendar/",
-      {
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; GoOutAlready/1.0)" },
-        timeout: 15000,
-      }
+      "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/194/schedule",
+      { timeout: 10000 }
     );
-    const $ = cheerio.load(data);
 
-    $(".tribe-event, .event-item, [class*='EventCard']").each((_, el) => {
-      const title = $(el).find("h2, h3, [class*='title']").first().text().trim();
-      const dateText = $(el).find("time, [class*='date']").first().text().trim();
-      const location = $(el).find("[class*='location'], [class*='venue']").first().text().trim();
-      const link = $(el).find("a").first().attr("href") || "";
+    for (const event of data.events ?? []) {
+      const competition = event.competitions?.[0];
+      if (!competition) continue;
 
-      if (!title || !dateText) return;
+      const gameDate = new Date(event.date);
+      if (isNaN(gameDate.getTime())) continue;
+      if (gameDate < now || gameDate > sixMonthsOut) continue;
 
-      // Hard check: only show events at Columbus venues
-      if (location && !isOSUHomeVenue(location)) return;
+      const homeTeam = competition.competitors?.find(
+        (c: { homeAway: string }) => c.homeAway === "home"
+      );
+      const isOSUHome =
+        homeTeam?.team?.id === "194" ||
+        homeTeam?.team?.abbreviation?.toLowerCase() === "osu" ||
+        homeTeam?.team?.displayName?.toLowerCase().includes("ohio state");
+      if (!isOSUHome) continue;
 
-      const parsedDate = new Date(dateText);
-      if (isNaN(parsedDate.getTime())) return;
-      if (parsedDate < now || parsedDate > sixMonthsOut) return;
+      const awayTeam = competition.competitors?.find(
+        (c: { homeAway: string }) => c.homeAway === "away"
+      );
+      const opponent = awayTeam?.team?.displayName ?? null;
+      const venue = competition.venue?.fullName || "Ohio Stadium";
+
+      // Detect spring game / scrimmage (no real opponent, or ESPN marks it as a scrimmage)
+      const isSpringGame =
+        !opponent ||
+        event.name?.toLowerCase().includes("spring") ||
+        event.shortName?.toLowerCase().includes("spring") ||
+        competition.notes?.some((n: { headline?: string }) =>
+          n.headline?.toLowerCase().includes("spring")
+        );
+
+      const title = isSpringGame
+        ? "Ohio State Spring Game"
+        : `Ohio State vs. ${opponent}`;
 
       events.push({
-        title: `Ohio State: ${title}`,
-        date: parsedDate.toISOString().split("T")[0],
-        locationName: location || "Ohio State Campus, Columbus",
-        sourceUrl: link.startsWith("http") ? link : `https://ohiostatebuckeyes.com${link}`,
-        sourceName: "Ohio State Athletics",
+        title,
+        date: toEasternDateStr(gameDate),
+        startTime: toEasternHHMM(gameDate),
+        locationName: venue,
+        address: "411 Woody Hayes Dr, Columbus, OH 43210",
+        sourceUrl: "https://www.ohiostatebuckeyes.com/sports/football/schedule",
+        sourceName: "Ohio State Football",
       });
-    });
+    }
   } catch (err) {
     console.warn("[sportsSchedules] Ohio State error:", err);
   }

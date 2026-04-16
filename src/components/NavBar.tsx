@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { Logo } from "@/components/Logo";
 
 export function NavBar() {
   const { data: session } = useSession();
@@ -16,7 +15,6 @@ export function NavBar() {
     .toUpperCase()
     .slice(0, 2) ?? "?";
 
-  // Fetch saved-events count for badge
   useEffect(() => {
     if (!session) return;
     fetch("/api/swipe/stats")
@@ -30,61 +28,57 @@ export function NavBar() {
   }, [session]);
 
   return (
-    <nav
-      className="w-full bg-white border-b flex items-center justify-between px-4 sticky top-0 z-50"
-      style={{ height: 52, borderColor: "rgba(0,0,0,0.12)", borderBottomWidth: "0.5px" }}
-    >
-      <Link href="/" className="flex items-center gap-2">
-        <Logo size={28} />
-        <span className="text-[15px] font-medium">
-          <span className="text-[#111111]">go out </span>
-          <span className="text-[#2563EB]">already</span>
-        </span>
+    <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl flex items-center justify-between px-6 py-4 font-body">
+      <Link href="/" className="flex items-center gap-2.5">
+        <h1 className="text-2xl font-headline font-bold text-primary tracking-tight">
+          go out already
+        </h1>
       </Link>
 
-      <div className="flex items-center gap-3">
+      <nav className="flex items-center gap-2">
         {session ? (
           <>
             <Link
               href="/swipe"
-              className="text-[13px] text-[#555555] hover:text-[#111111]"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-headline font-bold text-on-surface-variant hover:bg-surface-container transition-colors active:scale-95 duration-200"
             >
+              <span className="material-symbols-outlined text-[18px]">explore</span>
               Swipe
             </Link>
             <Link
               href="/interested"
-              className="relative flex items-center gap-1 text-[13px] text-[#555555] hover:text-[#111111]"
+              className="relative flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-headline font-bold text-on-surface-variant hover:bg-surface-container transition-colors active:scale-95 duration-200"
             >
+              <span className="material-symbols-outlined text-[18px]">bookmark</span>
               Saved
               {interestedCount > 0 && (
-                <span className="text-[10px] font-medium text-white bg-[#2563EB] px-1.5 py-0.5 rounded-full leading-none">
+                <span className="absolute -top-0.5 -right-0.5 text-[9px] font-bold text-on-primary bg-primary px-1.5 py-0.5 rounded-full leading-none min-w-[18px] text-center">
                   {interestedCount}
                 </span>
               )}
             </Link>
-            <Link
-              href="/settings"
-              className="text-[13px] text-[#555555] hover:text-[#111111]"
-            >
-              Settings
-            </Link>
             <button
               onClick={() => signOut()}
-              className="w-8 h-8 rounded-lg bg-[#E6F1FB] flex items-center justify-center text-[#2563EB] text-[12px] font-medium"
+              className="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border-2 border-primary/10 flex-shrink-0 ml-1"
               title="Sign out"
             >
-              {initials}
+              {session.user?.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[11px] font-headline font-bold text-primary">{initials}</span>
+              )}
             </button>
           </>
         ) : (
           <button
             onClick={() => signIn("google")}
-            className="text-[13px] text-[#2563EB] font-medium hover:text-[#185FA5]"
+            className="px-5 py-2 rounded-full bg-primary text-on-primary text-[13px] font-headline font-bold hover:opacity-90 transition-opacity active:scale-95 duration-200"
           >
             Sign in
           </button>
         )}
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }

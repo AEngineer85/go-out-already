@@ -16,7 +16,7 @@ interface TopPickCardProps {
 
 function formatShortDate(dateStr: string) {
   const datePart = dateStr.split("T")[0];
-  const d = new Date(datePart + "T00:00:00");
+  const d = new Date(datePart + "T12:00:00");
   return d.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -27,26 +27,22 @@ function formatShortDate(dateStr: string) {
 export function TopPickCard({ event, onSelect }: TopPickCardProps) {
   return (
     <div
-      className="bg-white rounded-[12px] p-[14px] cursor-pointer hover:shadow-sm transition-shadow"
-      style={{ border: "0.5px solid rgba(0,0,0,0.12)" }}
+      className={`bg-surface-container-lowest rounded-xl p-4 cursor-pointer hover:bg-surface-container transition-all active:scale-[0.98] duration-200 border border-outline-variant/20 ${
+        event.addedToCalendar ? "opacity-70" : ""
+      }`}
       onClick={() => !event.addedToCalendar && onSelect(event.id)}
     >
-      <div className="text-[11px] font-medium text-[#185FA5] mb-1">
+      <div className="text-[10px] font-headline font-bold text-secondary uppercase tracking-widest mb-1.5">
         {formatShortDate(event.date)}
       </div>
 
-      <h3 className="text-[13px] font-medium text-[#111111] leading-snug mb-2">
+      <h3 className="text-[13px] font-headline font-semibold text-on-surface leading-snug mb-2 line-clamp-2">
         {event.title}
       </h3>
 
-      <div className="flex items-center gap-1 mb-2">
-        <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
-          <path
-            d="M5 0C2.79 0 1 1.79 1 4c0 3 4 8 4 8S9 7 9 4c0-2.21-1.79-4-4-4zm0 5.5A1.5 1.5 0 1 1 5 2.5a1.5 1.5 0 0 1 0 3z"
-            fill="#999999"
-          />
-        </svg>
-        <span className="text-[12px] text-[#555555] truncate">
+      <div className="flex items-center gap-1.5 mb-2.5">
+        <span className="material-symbols-outlined text-on-surface-variant text-[14px]">location_on</span>
+        <span className="text-[11px] text-on-surface-variant truncate">
           {event.locationName}
         </span>
       </div>
@@ -59,8 +55,8 @@ export function TopPickCard({ event, onSelect }: TopPickCardProps) {
 
       {event.addedToCalendar && (
         <div className="mt-2 flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-[#3B6D11] inline-block" />
-          <span className="text-[11px] text-[#3B6D11] font-medium">
+          <span className="material-symbols-outlined text-[12px] text-[#3B6D11]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          <span className="text-[10px] font-headline font-bold text-[#3B6D11]">
             Added to calendar
           </span>
         </div>

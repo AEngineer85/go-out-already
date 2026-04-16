@@ -22,7 +22,7 @@ interface EventCardProps {
 
 function formatDate(dateStr: string) {
   const datePart = dateStr.split("T")[0];
-  const d = new Date(datePart + "T00:00:00");
+  const d = new Date(datePart + "T12:00:00");
   return d.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -55,87 +55,64 @@ export function EventCard({ event, selected, onToggle }: EventCardProps) {
 
   return (
     <div
-      className="bg-white rounded-[12px] p-[14px] cursor-pointer transition-all"
-      style={{
-        border: selected
-          ? "0.5px solid #2563EB"
-          : "0.5px solid rgba(0,0,0,0.12)",
-        backgroundColor: selected ? "#F5F9FF" : "#FFFFFF",
-      }}
+      className={`rounded-xl px-4 py-3.5 cursor-pointer transition-all active:scale-[0.99] duration-150 ${
+        selected
+          ? "bg-primary-container/40 border border-primary/40"
+          : "bg-surface-container-lowest border border-outline-variant/20 hover:bg-surface-container"
+      } ${event.addedToCalendar ? "opacity-70" : ""}`}
       onClick={() => !event.addedToCalendar && onToggle(event.id)}
     >
       <div className="flex items-start gap-3">
-        {/* Checkbox / Added badge */}
+        {/* Checkbox / Added indicator */}
         <div className="mt-0.5 shrink-0">
           {event.addedToCalendar ? (
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#3B6D11] inline-block" />
-            </div>
+            <span className="material-symbols-outlined text-[18px] text-[#3B6D11]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
           ) : (
             <div
-              className="w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0"
-              style={{
-                backgroundColor: selected ? "#2563EB" : "transparent",
-                borderColor: selected ? "#2563EB" : "rgba(0,0,0,0.25)",
-              }}
+              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                selected
+                  ? "bg-primary border-primary"
+                  : "border-outline-variant"
+              }`}
             >
               {selected && (
-                <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                  <path
-                    d="M1 4L4 7.5L10 1"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <span className="material-symbols-outlined text-on-primary text-[14px]" style={{ fontVariationSettings: "'wght' 700" }}>check</span>
               )}
             </div>
           )}
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[14px] font-medium text-[#111111] leading-snug">
-              {event.title}
-            </h3>
-          </div>
+          <h3 className="text-[14px] font-headline font-semibold text-on-surface leading-snug">
+            {event.title}
+          </h3>
 
-          <div className="mt-1 text-[12px] text-[#555555] flex flex-wrap gap-x-3 gap-y-0.5">
-            <span>
+          <div className="mt-1 flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-secondary text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>calendar_today</span>
+            <span className="text-[12px] font-headline font-medium text-secondary">
               {formatDate(event.date)} · {timeDisplay}
             </span>
           </div>
 
-          <div className="mt-0.5 text-[12px] text-[#555555] flex items-center gap-1">
-            <svg
-              width="11"
-              height="13"
-              viewBox="0 0 11 13"
-              fill="none"
-              className="shrink-0"
-            >
-              <path
-                d="M5.5 0C3.01 0 1 2.01 1 4.5c0 3.375 4.5 8.5 4.5 8.5S10 7.875 10 4.5C10 2.01 7.99 0 5.5 0zm0 6.125A1.625 1.625 0 1 1 5.5 2.875a1.625 1.625 0 0 1 0 3.25z"
-                fill="#999999"
-              />
-            </svg>
-            <span className="truncate">{event.locationName}</span>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-on-surface-variant text-[14px]">location_on</span>
+            <span className="text-[12px] text-on-surface-variant truncate">{event.locationName}</span>
           </div>
 
-          <div className="mt-2 flex flex-wrap gap-1">
-            {event.tags.map((tag) => (
-              <TagChip key={tag} tag={tag} />
-            ))}
-          </div>
+          {event.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {event.tags.map((tag) => (
+                <TagChip key={tag} tag={tag} />
+              ))}
+            </div>
+          )}
 
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-[11px] text-[#999999]">
+            <span className="text-[11px] text-on-surface-variant/60">
               {allSources.join(" · ")}
             </span>
             {event.addedToCalendar && (
-              <span className="text-[11px] text-[#3B6D11] font-medium flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-[#3B6D11] inline-block" />
+              <span className="text-[11px] font-headline font-bold text-[#3B6D11]">
                 Added to calendar
               </span>
             )}

@@ -48,8 +48,10 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Include both upcoming and past events (user may want to review past saves)
-  const events = actions.map((a) => a.event);
+  // Only return upcoming/today's events — past events drop off automatically
+  const events = actions
+    .map((a) => a.event)
+    .filter((e) => new Date(e.date) >= today);
 
   return NextResponse.json({ events });
 }
