@@ -28,8 +28,8 @@ const now = new Date();
 const sixMonthsOut = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
 
 interface DelcoEventMeta {
-  start_time?: number;   // Unix ms UTC
-  end_time?: number;     // Unix ms UTC
+  start_time?: number;   // Unix seconds (NOT ms) — multiply by 1000 for Date constructor
+  end_time?: number;     // Unix seconds
   location?: string;     // venue name
   address?: string;      // full address
   external_url?: string;
@@ -78,14 +78,14 @@ export async function scrapeVisitDelawareOhio(): Promise<RawEvent[]> {
         const meta = ev.meta ?? {};
         if (!meta.start_time) continue;
 
-        const startDate = new Date(meta.start_time);
+        const startDate = new Date(meta.start_time * 1000);
         if (startDate < now || startDate > sixMonthsOut) continue;
 
         const dateStr = toEasternDateStr(startDate);
         const startTime = meta.all_day ? undefined : toEasternHHMM(startDate);
         const endTime =
           meta.end_time && !meta.all_day
-            ? toEasternHHMM(new Date(meta.end_time))
+            ? toEasternHHMM(new Date(meta.end_time * 1000))
             : undefined;
 
         const title = ev.title.rendered
