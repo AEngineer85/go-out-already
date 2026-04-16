@@ -152,7 +152,7 @@ export default function SwipePage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface font-body text-on-surface antialiased">
+    <div className="min-h-screen bg-surface font-body text-on-surface antialiased overflow-x-hidden">
 
       {/* Top App Bar */}
       <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl flex justify-between items-center px-6 py-4">

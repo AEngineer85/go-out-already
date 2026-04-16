@@ -1,14 +1,17 @@
 /**
  * Strips HTML tags, WordPress/Divi shortcodes, and decodes entities from a
  * raw event description string.
- * Entities are decoded FIRST so that double-encoded HTML (e.g. &lt;p&gt;)
- * becomes a tag that can then be stripped.
+ *
+ * Order matters:
+ * 1. Decode entities first — so &#8220; inside shortcode attrs becomes a plain
+ *    char and the shortcode regex can match to the closing ]
+ * 2. Strip WordPress shortcodes (Divi et_pb_* etc.)
+ * 3. Strip remaining HTML tags
+ * 4. Collapse whitespace
  */
 export function cleanDescription(raw: string): string {
-  // Strip WordPress shortcodes like [et_pb_section ...] or [/et_pb_section]
-  let text = raw.replace(/\[\/?\w[\w\-]*[^\]]*\]/g, " ");
-  // Decode HTML entities
-  text = text
+  // 1. Decode HTML entities
+  let text = raw
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
@@ -17,7 +20,10 @@ export function cleanDescription(raw: string): string {
     .replace(/&#039;/g, "'")
     .replace(/&nbsp;/g, " ")
     .replace(/&#\d+;/g, " ");
-  // Strip HTML tags after entity decoding
+  // 2. Strip WordPress/Divi shortcodes like [et_pb_section ...] or [/et_pb_row]
+  text = text.replace(/\[\/?\w[\w-]*[^\]]*\]/g, " ");
+  // 3. Strip HTML tags
   text = text.replace(/<[^>]+>/g, " ");
+  // 4. Collapse whitespace
   return text.replace(/\s{2,}/g, " ").trim();
 }

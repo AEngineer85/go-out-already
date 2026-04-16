@@ -22,13 +22,18 @@ const prisma = new PrismaClient();
 /** Strip HTML tags and decode entities from raw description text before storing. */
 function cleanDescription(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
+  // 1. Decode entities first (so encoded chars inside shortcodes are plain)
   let text = raw
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
     .replace(/&#039;/g, "'").replace(/&nbsp;/g, " ")
     .replace(/&#\d+;/g, " ");
+  // 2. Strip WordPress/Divi shortcodes like [et_pb_section ...] or [/et_pb_row]
+  text = text.replace(/\[\/?\w[\w-]*[^\]]*\]/g, " ");
+  // 3. Strip HTML tags
   text = text.replace(/<[^>]+>/g, " ");
+  // 4. Collapse whitespace
   text = text.replace(/\s{2,}/g, " ").trim();
   return text || undefined;
 }
@@ -175,13 +180,12 @@ export async function runCrawl(): Promise<{
             (s) => !existingAdditional.some((e) => e.sourceName === s.sourceName)
           ),
         ];
+        // Use id-based update (safe even if hash was just changed above)
         await prisma.event.update({
-          where: { fingerprintHash: fp },
+          where: { id: existing.id },
           data: {
             additionalSources: allAdditional,
             relevanceScore,
-            // Always refresh time fields so timezone-corrected values overwrite
-            // any previously stored UTC times from older crawler runs
             startTime: event.startTime ?? existing.startTime,
             endTime: event.endTime ?? existing.endTime,
           },

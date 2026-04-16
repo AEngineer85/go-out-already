@@ -60,4 +60,12 @@ describe("cleanDescription", () => {
       cleanDescription("[et_pb_row][et_pb_column type= 4_4 ][et_pb_text] Come join us for fun. [/et_pb_text][/et_pb_column][/et_pb_row]")
     ).toBe("Come join us for fun.");
   });
+
+  it("strips shortcodes containing HTML entities in attributes (real-world Divi bug)", () => {
+    // Entities like &#8220; must be decoded first so the ] closing bracket is
+    // correctly identified and the whole shortcode is removed
+    expect(
+      cleanDescription('[et_pb_text _builder_version=&#8220;4.20.4&#8221;]Join us![/et_pb_text]')
+    ).toBe("Join us!");
+  });
 });
