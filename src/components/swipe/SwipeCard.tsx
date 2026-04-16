@@ -25,12 +25,15 @@ export interface SwipeEvent {
   endTime?: string | null;
   locationName: string;
   address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
   tags: string[];
   sourceName: string;
   sourceUrl: string;
   additionalSources?: { sourceName: string }[] | null;
   addedToCalendar: boolean;
   crawledAt: string;
+  distanceMiles?: number | null;
 }
 
 export interface SwipeCardHandle {
@@ -56,6 +59,15 @@ function formatDate(dateStr: string): string {
     month: "short",
     day: "numeric",
   });
+}
+
+/** Decode HTML entities and strip any remaining tags from description text */
+function cleanDescription(raw: string): string {
+  return raw
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/\s{2,}/g, " ").trim();
 }
 
 function formatTime(time: string | null | undefined): string | null {
@@ -153,7 +165,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, SwipeCardProps>(
           <div className="space-y-2">
             {/* Date / time */}
             <div className="flex items-center gap-2">
-              <span className="material-symbols-filled text-primary text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>calendar_today</span>
+              <span className="material-symbols-outlined text-primary text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>calendar_today</span>
               <span className="text-[11px] font-headline font-bold text-secondary uppercase tracking-widest">
                 {formatDate(event.date)}{timeStr ? ` · ${timeStr}` : ""}
               </span>
@@ -171,18 +183,23 @@ export const SwipeCard = forwardRef<SwipeCardHandle, SwipeCardProps>(
             {/* Description */}
             {event.description && (
               <p className="text-[12px] text-on-surface-variant leading-relaxed line-clamp-2">
-                {event.description}
+                {cleanDescription(event.description)}
               </p>
             )}
           </div>
 
-          {/* Footer: location + details */}
+          {/* Footer: location + distance + actions */}
           <div className="flex items-center justify-between pt-3 border-t border-surface-container">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="material-symbols-outlined text-primary-fixed text-[18px] flex-shrink-0">location_on</span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0">location_on</span>
               <span className="text-[12px] font-medium text-on-surface truncate">
                 {event.locationName}
               </span>
+              {event.distanceMiles != null && (
+                <span className="text-[11px] font-headline font-bold text-primary flex-shrink-0">
+                  · {event.distanceMiles} mi
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-3 flex-shrink-0 ml-2">
               {event.addedToCalendar ? (

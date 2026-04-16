@@ -187,10 +187,11 @@ export default function SwipePage() {
           <EmptySwipeState reviewedCount={reviewedCount} />
         ) : (
           <>
-            {/* Card stack + floating controls */}
-            <div className="relative w-full group" style={{ aspectRatio: "3/4" }}>
-              {/* Ghost card behind the stack */}
-              <div className="absolute inset-0 translate-y-5 scale-[0.93] opacity-30 bg-surface-container-low rounded-xl -z-10" />
+            {/* Card stack */}
+            <div className="relative w-full" style={{ height: 460 }}>
+              {/* Ghost card depth layer */}
+              <div className="absolute inset-x-2 bottom-0 h-full translate-y-3 scale-[0.95] opacity-40 bg-surface-container-low rounded-xl -z-10" />
+              <div className="absolute inset-x-4 bottom-0 h-full translate-y-6 scale-[0.90] opacity-20 bg-surface-container-low rounded-xl -z-20" />
 
               <SwipeCardStack
                 events={queue}
@@ -198,7 +199,10 @@ export default function SwipePage() {
                 onCalendarAdd={setCalendarEvent}
                 cardRef={cardRef}
               />
+            </div>
 
+            {/* Controls — separate row below card, clear of overlap */}
+            <div className="mt-6 w-full">
               <SwipeControls
                 onPass={() => cardRef.current?.triggerSwipe("left")}
                 onInterested={() => cardRef.current?.triggerSwipe("right")}
@@ -209,7 +213,7 @@ export default function SwipePage() {
             </div>
 
             {/* Editorial teaser */}
-            <div className="mt-20 text-center space-y-2 opacity-40">
+            <div className="mt-14 text-center space-y-2 opacity-40">
               <p className="font-headline font-bold text-[10px] tracking-[0.3em] text-on-surface-variant uppercase">
                 Swipe to discover more in Columbus
               </p>

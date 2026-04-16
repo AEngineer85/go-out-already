@@ -180,6 +180,7 @@ export default function SettingsPage() {
   }
 
   const saveLabel = saving ? "Saving…" : saved ? "Saved ✓" : "Save preferences";
+  const isAdmin = session?.user?.email === "nick.f.weiss@gmail.com";
 
   const initials = session?.user?.name
     ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "?";
@@ -565,8 +566,8 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* ── Crawler Status ─────────────────────────────────────────────────── */}
-        <section className="space-y-6">
+        {/* ── Crawler Status — admin only ────────────────────────────────────── */}
+        {isAdmin && <section className="space-y-6">
           <h3 className="text-2xl font-headline font-bold">Crawler Status</h3>
           <div className="bg-surface-container-lowest border-2 border-error/10 rounded-xl p-8 relative overflow-hidden">
             {/* Background glow */}
@@ -616,7 +617,7 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
-        </section>
+        </section>}
 
       </main>
 

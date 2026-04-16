@@ -176,7 +176,15 @@ export async function GET(request: NextRequest) {
     return new Date(a.event.date).getTime() - new Date(b.event.date).getTime();
   });
 
-  const page = scored.slice(0, limit).map((s) => s.event);
+  const page = scored.slice(0, limit).map((s) => ({
+    ...s.event,
+    // Include distance from home if user has a home location and event has coords
+    distanceMiles:
+      user.homeLat != null && user.homeLng != null &&
+      s.event.lat != null && s.event.lng != null
+        ? Math.round(distanceMiles(user.homeLat, user.homeLng, s.event.lat, s.event.lng) * 10) / 10
+        : null,
+  }));
   const nextCursor =
     scored.length > limit ? scored[limit - 1].event.id : null;
 

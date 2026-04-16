@@ -16,7 +16,7 @@ export function SwipeControls({
   disabled,
 }: SwipeControlsProps) {
   return (
-    <div className="absolute -bottom-8 left-0 right-0 flex justify-center items-center gap-8 z-10">
+    <div className="flex justify-center items-center gap-8">
       {/* Pass (X) */}
       <button
         onClick={onPass}

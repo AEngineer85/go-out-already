@@ -19,7 +19,7 @@ export function SwipeCardStack({
   const topThree = events.slice(0, 3);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full" style={{ height: "100%" }}>
       {/* Back cards — stack effect */}
       {topThree
         .slice(1)
