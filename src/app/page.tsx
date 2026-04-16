@@ -200,7 +200,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface font-body text-on-surface antialiased pb-36">
+    <div className="min-h-screen bg-surface font-body text-on-surface antialiased pb-36 overflow-x-hidden">
       {/* Top App Bar */}
       <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl flex items-center justify-between px-6 py-4">
         <h1 className="text-2xl font-headline font-bold text-primary tracking-tight">go out already</h1>

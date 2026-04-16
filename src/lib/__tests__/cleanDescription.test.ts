@@ -62,10 +62,14 @@ describe("cleanDescription", () => {
   });
 
   it("strips shortcodes containing HTML entities in attributes (real-world Divi bug)", () => {
-    // Entities like &#8220; must be decoded first so the ] closing bracket is
-    // correctly identified and the whole shortcode is removed
     expect(
       cleanDescription('[et_pb_text _builder_version=&#8220;4.20.4&#8221;]Join us![/et_pb_text]')
     ).toBe("Join us!");
+  });
+
+  it("strips truncated/unclosed shortcodes stored mid-string (no closing ])", () => {
+    // Real-world: description was truncated in DB leaving an unclosed shortcode
+    expect(cleanDescription("[et_pb_text _builder_version=&#8")).toBe("");
+    expect(cleanDescription("[et_pb_column type= 4_4 _builder_version= 4.27.5 _module_preset= defau")).toBe("");
   });
 });

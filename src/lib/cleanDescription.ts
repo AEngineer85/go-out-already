@@ -20,8 +20,9 @@ export function cleanDescription(raw: string): string {
     .replace(/&#039;/g, "'")
     .replace(/&nbsp;/g, " ")
     .replace(/&#\d+;/g, " ");
-  // 2. Strip WordPress/Divi shortcodes like [et_pb_section ...] or [/et_pb_row]
-  text = text.replace(/\[\/?\w[\w-]*[^\]]*\]/g, " ");
+  // 2. Strip WordPress/Divi shortcodes — closed [et_pb_section ...] and
+  //    unclosed fragments [et_pb_text _builder... (truncated, no closing ])
+  text = text.replace(/\[\/?\w[\w-]*[^\]]*\]?/g, " ");
   // 3. Strip HTML tags
   text = text.replace(/<[^>]+>/g, " ");
   // 4. Collapse whitespace
