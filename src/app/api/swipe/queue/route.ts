@@ -6,6 +6,7 @@ import {
   computePersonalScore,
   computeKeywordBoost,
   shouldBlockByTime,
+  shouldBlockByKeyword,
   COLD_START_THRESHOLD,
   RECENCY_BIAS_MULTIPLIERS,
 } from "@/lib/swipePreferences";
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
       boostFreeEvents: true,
       maxWeeksAhead: true,
       favoriteKeywords: true,
+      blockedKeywords: true,
     },
   });
   if (!user) {
@@ -138,6 +140,12 @@ export async function GET(request: NextRequest) {
       )
   );
 
+  // 3. Blocked keywords (hard exclude — user never wants to see these)
+  const blockedKeywords = user.blockedKeywords ?? [];
+  const keywordFiltered = timeFiltered.filter(
+    (e) => !shouldBlockByKeyword(e, blockedKeywords)
+  );
+
   // ── Score and sort ────────────────────────────────────────────────────────
 
   const isColdStart = totalSwipes < COLD_START_THRESHOLD;
@@ -145,7 +153,7 @@ export async function GET(request: NextRequest) {
     RECENCY_BIAS_MULTIPLIERS[user.recencyBias ?? "moderate"] ?? 1.0;
   const favoriteKeywords = user.favoriteKeywords ?? [];
 
-  const scored = timeFiltered.map((event) => ({
+  const scored = keywordFiltered.map((event) => ({
     event,
     score: isColdStart
       ? // Cold start: global relevance + keyword boost (manual prefs apply immediately)

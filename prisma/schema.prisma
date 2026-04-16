@@ -31,6 +31,7 @@ model User {
   boostFreeEvents     Boolean  @default(false)
   maxWeeksAhead       Int      @default(8)
   favoriteKeywords    String[]
+  blockedKeywords     String[]
 
   swipeActions      SwipeAction[]
   tagPreferences    UserTagPreference[]

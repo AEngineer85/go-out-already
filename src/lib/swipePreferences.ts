@@ -56,6 +56,22 @@ export function computeWeightDelta(
 // ── Manual preference functions ────────────────────────────────────────────
 
 /**
+ * Returns true if the event should be excluded because its title, description,
+ * or location contains one of the user's blocked keywords (case-insensitive).
+ */
+export function shouldBlockByKeyword(
+  event: { title: string; description?: string | null; locationName: string },
+  blockedKeywords: string[]
+): boolean {
+  if (!blockedKeywords.length) return false;
+  const haystack =
+    `${event.title} ${event.description ?? ""} ${event.locationName}`.toLowerCase();
+  return blockedKeywords.some(
+    (kw) => kw.trim() && haystack.includes(kw.trim().toLowerCase())
+  );
+}
+
+/**
  * Returns a score boost for an event based on the user's favorite keywords.
  * Checks title, description, and locationName (case-insensitive).
  * Adds KEYWORD_BOOST for each keyword that matches anywhere in the text.

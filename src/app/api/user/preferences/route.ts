@@ -21,6 +21,7 @@ const DISCOVERY_SELECT = {
   boostFreeEvents: true,
   maxWeeksAhead: true,
   favoriteKeywords: true,
+  blockedKeywords: true,
 } as const;
 
 export async function GET() {
@@ -59,6 +60,7 @@ export async function PUT(request: NextRequest) {
     boostFreeEvents,
     maxWeeksAhead,
     favoriteKeywords,
+    blockedKeywords,
   } = body;
 
   // Geocode the zip code server-side if it changed
@@ -98,6 +100,7 @@ export async function PUT(request: NextRequest) {
       ...(boostFreeEvents !== undefined && { boostFreeEvents }),
       ...(maxWeeksAhead != null && { maxWeeksAhead }),
       ...(favoriteKeywords !== undefined && { favoriteKeywords }),
+      ...(blockedKeywords !== undefined && { blockedKeywords }),
     },
     select: DISCOVERY_SELECT,
   });

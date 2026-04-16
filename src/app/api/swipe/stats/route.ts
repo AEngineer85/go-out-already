@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function GET() {
   const session = await auth();
@@ -10,7 +11,7 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
-    select: { id: true },
+    select: { id: true, blockedKeywords: true },
   });
   if (!user) {
     return NextResponse.json({ interestedCount: 0 });
@@ -18,6 +19,20 @@ export async function GET() {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  // Build keyword exclusion conditions for each blocked keyword
+  const blockedKeywords = user.blockedKeywords ?? [];
+  const keywordExclusions: Prisma.EventWhereInput[] = blockedKeywords
+    .filter((kw) => kw.trim())
+    .map((kw) => ({
+      NOT: {
+        OR: [
+          { title: { contains: kw.trim(), mode: Prisma.QueryMode.insensitive } },
+          { description: { contains: kw.trim(), mode: Prisma.QueryMode.insensitive } },
+          { locationName: { contains: kw.trim(), mode: Prisma.QueryMode.insensitive } },
+        ],
+      },
+    }));
 
   const [interestedCount, swipedIds, totalUpcoming] = await Promise.all([
     prisma.swipeAction.count({
@@ -28,7 +43,11 @@ export async function GET() {
       select: { eventId: true },
     }),
     prisma.event.count({
-      where: { archived: false, date: { gte: today } },
+      where: {
+        archived: false,
+        date: { gte: today },
+        ...(keywordExclusions.length > 0 ? { AND: keywordExclusions } : {}),
+      },
     }),
   ]);
 

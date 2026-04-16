@@ -83,6 +83,10 @@ export default function SettingsPage() {
   const [favoriteKeywords, setFavoriteKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState("");
 
+  // Blocked Keywords
+  const [blockedKeywords, setBlockedKeywords] = useState<string[]>([]);
+  const [blockedInput, setBlockedInput] = useState("");
+
   // UI state
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -118,6 +122,7 @@ export default function SettingsPage() {
         setWeekendsOnly(d.weekendsOnly ?? false);
         setBoostFreeEvents(d.boostFreeEvents ?? false);
         setFavoriteKeywords(d.favoriteKeywords ?? []);
+        setBlockedKeywords(d.blockedKeywords ?? []);
       });
 
     fetch("/api/crawl/status")
@@ -146,6 +151,7 @@ export default function SettingsPage() {
         weekendsOnly,
         boostFreeEvents,
         favoriteKeywords,
+        blockedKeywords,
       }),
     });
     setSaving(false);
@@ -177,6 +183,19 @@ export default function SettingsPage() {
 
   function removeKeyword(kw: string) {
     setFavoriteKeywords((prev) => prev.filter((k) => k !== kw));
+  }
+
+  function addBlockedKeyword(kw: string) {
+    const trimmed = kw.trim();
+    if (!trimmed) return;
+    if (!blockedKeywords.map((k) => k.toLowerCase()).includes(trimmed.toLowerCase())) {
+      setBlockedKeywords((prev) => [...prev, trimmed]);
+    }
+    setBlockedInput("");
+  }
+
+  function removeBlockedKeyword(kw: string) {
+    setBlockedKeywords((prev) => prev.filter((k) => k !== kw));
   }
 
   const saveLabel = saving ? "Saving…" : saved ? "Saved ✓" : "Save preferences";
@@ -560,6 +579,69 @@ export default function SettingsPage() {
               onClick={handleSave}
               disabled={saving}
               className="w-full py-4 rounded-full bg-gradient-to-r from-primary to-primary-container text-white font-headline font-bold text-lg shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-60"
+            >
+              {saveLabel}
+            </button>
+          </div>
+        </section>
+
+        {/* ── Blocked Keywords ──────────────────────────────────────────────── */}
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <h3 className="text-2xl font-headline font-bold">Blocked Keywords</h3>
+            <p className="text-on-surface-variant max-w-xl">
+              Events matching any of these words in their title, description, or venue will be hidden from your swipe queue and browse list.
+            </p>
+          </div>
+          <div className="bg-surface-container-lowest border border-error/10 rounded-xl p-8 space-y-6">
+
+            {/* Saved blocked keyword chips */}
+            <div className="flex flex-wrap gap-2">
+              {blockedKeywords.map((kw) => (
+                <button
+                  key={kw}
+                  type="button"
+                  onClick={() => removeBlockedKeyword(kw)}
+                  className="px-4 py-2 bg-error-container text-on-error-container rounded-full text-sm font-headline font-bold flex items-center gap-1.5 hover:bg-error hover:text-on-error transition-colors"
+                  title={`Remove "${kw}"`}
+                >
+                  {kw}
+                  <span className="material-symbols-outlined text-[14px]">close</span>
+                </button>
+              ))}
+
+              {/* Add input */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={blockedInput}
+                  onChange={(e) => setBlockedInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); addBlockedKeyword(blockedInput); }
+                  }}
+                  placeholder="Add keyword to block…"
+                  className="bg-surface-container border-none rounded-full px-4 py-2 text-sm text-on-surface focus:ring-2 focus:ring-error/20 outline-none w-48"
+                />
+                <button
+                  type="button"
+                  onClick={() => addBlockedKeyword(blockedInput)}
+                  className="w-10 h-10 rounded-full border-2 border-dashed border-error flex items-center justify-center text-error hover:bg-error hover:text-on-error transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[20px]">block</span>
+                </button>
+              </div>
+            </div>
+
+            {blockedKeywords.length === 0 && (
+              <p className="text-[13px] text-on-surface-variant/60 italic">
+                No keywords blocked. Events you add here will never appear in your queue.
+              </p>
+            )}
+
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full py-4 rounded-full bg-surface-container-highest text-on-surface font-headline font-bold text-lg active:scale-95 transition-transform disabled:opacity-60"
             >
               {saveLabel}
             </button>
