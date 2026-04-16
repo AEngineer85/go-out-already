@@ -36,6 +36,8 @@ export default function SwipePage() {
 
   const cardRef = useRef<SwipeCardHandle>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track every event ID shown this session so re-fetches never show the same card twice
+  const seenIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/");
@@ -66,7 +68,11 @@ export default function SwipePage() {
       const res = await fetch("/api/swipe/queue?limit=20");
       const data = await res.json();
       if (!res.ok) { setQueueError(true); setQueue([]); }
-      else setQueue(data.events ?? []);
+      else {
+        const fresh = (data.events ?? []).filter((e: SwipeEvent) => !seenIds.current.has(e.id));
+        fresh.forEach((e: SwipeEvent) => seenIds.current.add(e.id));
+        setQueue(fresh);
+      }
     } catch {
       setQueueError(true);
       setQueue([]);
@@ -82,10 +88,9 @@ export default function SwipePage() {
       const res = await fetch("/api/swipe/queue?limit=20");
       const data = await res.json();
       if (data.events?.length > 0) {
-        setQueue((prev) => {
-          const existingIds = new Set(prev.map((e) => e.id));
-          return [...prev, ...(data.events as SwipeEvent[]).filter((e) => !existingIds.has(e.id))];
-        });
+        const fresh = (data.events as SwipeEvent[]).filter((e) => !seenIds.current.has(e.id));
+        fresh.forEach((e) => seenIds.current.add(e.id));
+        if (fresh.length > 0) setQueue((prev) => [...prev, ...fresh]);
       }
     } catch { /* silent */ }
     finally { setPrefetching(false); }
