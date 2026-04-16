@@ -45,8 +45,25 @@ async function main() {
 
   let deleted = 0;
   for (const group of dupeGroups) {
-    // ids is ordered newest-first; delete all but the first (newest)
+    // ids is ordered newest-first; keep first, delete the rest
+    const keeperId = group.ids[0];
     const toDelete = group.ids.slice(1);
+
+    // Re-point swipe actions from deleted dupes to the keeper before deleting,
+    // so user swipe history is preserved
+    for (const oldId of toDelete) {
+      await prisma.$executeRaw`
+        UPDATE "SwipeAction"
+        SET "eventId" = ${keeperId}
+        WHERE "eventId" = ${oldId}
+        AND NOT EXISTS (
+          SELECT 1 FROM "SwipeAction" s2
+          WHERE s2."userId" = "SwipeAction"."userId"
+          AND s2."eventId" = ${keeperId}
+        )
+      `;
+    }
+
     await prisma.event.deleteMany({ where: { id: { in: toDelete } } });
     deleted += toDelete.length;
   }
