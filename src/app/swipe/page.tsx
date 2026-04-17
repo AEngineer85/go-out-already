@@ -9,6 +9,7 @@ import { SwipeControls } from "@/components/swipe/SwipeControls";
 import { EmptySwipeState } from "@/components/swipe/EmptySwipeState";
 import { AddToCalendarModal } from "@/components/AddToCalendarModal";
 import { SwipeCardHandle, SwipeEvent } from "@/components/swipe/SwipeCard";
+import confetti from "canvas-confetti";
 
 interface LastSwipe {
   swipeId: string;
@@ -119,7 +120,19 @@ export default function SwipePage() {
       });
       const data = await res.json();
       setLastSwipe({ swipeId: data.swipeId, direction, event });
-      showToast(direction === "right" ? "Saved! 💚" : "Passed");
+
+      if (direction === "right" && data.mutualMatch && data.matchedFriends?.length > 0) {
+        const friendName = data.matchedFriends[0].name ?? "a friend";
+        showToast(`🎉 You and ${friendName} both saved this!`);
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.55 },
+          colors: ["#6750A4", "#B388FF", "#E8DEF8", "#FFD700", "#FF6B6B"],
+        });
+      } else {
+        showToast(direction === "right" ? "Saved! 💚" : "Passed");
+      }
     } catch {
       showToast("Something went wrong");
     } finally {

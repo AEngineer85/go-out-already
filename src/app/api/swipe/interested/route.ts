@@ -53,5 +53,39 @@ export async function GET() {
     .map((a) => a.event)
     .filter((e) => new Date(e.date) >= today);
 
-  return NextResponse.json({ events });
+  // Load friend matches: for each event, find which friends also right-swiped it
+  const friendships = await prisma.friendship.findMany({
+    where: { userId: user.id },
+    select: { friendId: true },
+  });
+  const friendIds = friendships.map((f) => f.friendId);
+
+  const friendMatchMap = new Map<string, { name: string | null; image: string | null }[]>();
+
+  if (friendIds.length > 0 && events.length > 0) {
+    const eventIds = events.map((e) => e.id);
+    const friendActions = await prisma.swipeAction.findMany({
+      where: {
+        eventId: { in: eventIds },
+        userId: { in: friendIds },
+        direction: "right",
+      },
+      include: {
+        user: { select: { name: true, image: true } },
+      },
+    });
+
+    for (const action of friendActions) {
+      const existing = friendMatchMap.get(action.eventId) ?? [];
+      existing.push({ name: action.user.name, image: action.user.image });
+      friendMatchMap.set(action.eventId, existing);
+    }
+  }
+
+  const eventsWithFriends = events.map((e) => ({
+    ...e,
+    friendMatches: friendMatchMap.get(e.id) ?? [],
+  }));
+
+  return NextResponse.json({ events: eventsWithFriends });
 }

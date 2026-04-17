@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { distanceMiles } from "@/lib/geocode";
+import { shouldBlockByTime } from "@/lib/swipePreferences";
 
 export async function GET() {
   const session = await auth();
@@ -18,6 +19,13 @@ export async function GET() {
       homeLat: true,
       homeLng: true,
       defaultRadiusMiles: true,
+      maxWeeksAhead: true,
+      blockWorkHours: true,
+      workStartHour: true,
+      workEndHour: true,
+      blockLateWeeknights: true,
+      weeknightCutoffHour: true,
+      weekendsOnly: true,
     },
   });
   if (!user) {
@@ -26,6 +34,10 @@ export async function GET() {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  // Apply the same maxWeeksAhead window as the queue route
+  const weeksAhead = user.maxWeeksAhead ?? 8;
+  const windowEnd = new Date(today.getTime() + weeksAhead * 7 * 24 * 60 * 60 * 1000);
 
   // Build keyword exclusion conditions
   const blockedKeywords = user.blockedKeywords ?? [];
@@ -49,18 +61,17 @@ export async function GET() {
       where: { userId: user.id },
       select: { eventId: true },
     }),
-    // Fetch enough fields to apply the same in-memory radius filter as the queue
     prisma.event.findMany({
       where: {
         archived: false,
-        date: { gte: today },
+        date: { gte: today, lte: windowEnd },
         ...(keywordExclusions.length > 0 ? { AND: keywordExclusions } : {}),
       },
-      select: { id: true, lat: true, lng: true },
+      select: { id: true, lat: true, lng: true, date: true, startTime: true },
     }),
   ]);
 
-  // Apply radius filter (same logic as queue route)
+  // Apply radius filter
   const radiusFiltered =
     user.homeLat != null && user.homeLng != null
       ? upcomingEvents.filter((e) => {
@@ -72,8 +83,24 @@ export async function GET() {
         })
       : upcomingEvents;
 
+  // Apply time block filters (same logic as queue route)
+  const timeFiltered = radiusFiltered.filter(
+    (e) =>
+      !shouldBlockByTime(
+        { date: new Date(e.date), startTime: e.startTime },
+        {
+          blockWorkHours: user.blockWorkHours,
+          workStartHour: user.workStartHour,
+          workEndHour: user.workEndHour,
+          blockLateWeeknights: user.blockLateWeeknights,
+          weeknightCutoffHour: user.weeknightCutoffHour,
+          weekendsOnly: user.weekendsOnly,
+        }
+      )
+  );
+
   const swipedSet = new Set(swipedIds.map((s) => s.eventId));
-  const unswipedCount = radiusFiltered.filter((e) => !swipedSet.has(e.id)).length;
+  const unswipedCount = timeFiltered.filter((e) => !swipedSet.has(e.id)).length;
 
   return NextResponse.json({ interestedCount, unswipedCount });
 }

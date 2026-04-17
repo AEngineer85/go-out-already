@@ -2,6 +2,11 @@
 
 import { TagChip } from "@/components/TagChip";
 
+interface FriendMatch {
+  name: string | null;
+  image: string | null;
+}
+
 interface InterestedEvent {
   id: string;
   title: string;
@@ -14,6 +19,7 @@ interface InterestedEvent {
   sourceName: string;
   additionalSources?: { sourceName: string }[] | null;
   addedToCalendar: boolean;
+  friendMatches?: FriendMatch[];
 }
 
 interface InterestedEventCardProps {
@@ -102,6 +108,17 @@ export function InterestedEventCard({
             {event.tags.slice(0, 3).map((tag) => (
               <TagChip key={tag} tag={tag} />
             ))}
+          </div>
+        )}
+
+        {event.friendMatches && event.friendMatches.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1.5 bg-primary/10 rounded-lg">
+            <span className="text-[13px]">🎉</span>
+            <span className="text-[11px] font-headline font-bold text-primary">
+              {event.friendMatches.length === 1
+                ? `${event.friendMatches[0].name ?? "A friend"} also saved this!`
+                : `${event.friendMatches.map((f) => f.name ?? "Friend").join(" & ")} also saved this!`}
+            </span>
           </div>
         )}
 

@@ -35,11 +35,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         where: { googleId },
         update: {
           email,
+          name: user.name ?? undefined,
+          image: user.image ?? undefined,
           ...(refreshToken && { refreshToken: encrypt(refreshToken) }),
         },
         create: {
           googleId,
           email,
+          name: user.name ?? null,
+          image: user.image ?? null,
           refreshToken: refreshToken ? encrypt(refreshToken) : null,
           blockedKeywords: DEFAULT_BLOCKED_KEYWORDS,
         },

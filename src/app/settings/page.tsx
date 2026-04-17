@@ -87,6 +87,13 @@ export default function SettingsPage() {
   const [blockedKeywords, setBlockedKeywords] = useState<string[]>([]);
   const [blockedInput, setBlockedInput] = useState("");
 
+  // Friends
+  const [friends, setFriends] = useState<{ id: string; name: string | null; email: string; image: string | null }[]>([]);
+  const [friendEmailInput, setFriendEmailInput] = useState("");
+  const [friendError, setFriendError] = useState<string | null>(null);
+  const [friendSuccess, setFriendSuccess] = useState<string | null>(null);
+  const [addingFriend, setAddingFriend] = useState(false);
+
   // UI state
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -128,6 +135,11 @@ export default function SettingsPage() {
     fetch("/api/crawl/status")
       .then((r) => r.json())
       .then((d) => { if (d && !d.error) setLastCrawl(d); })
+      .catch(() => {});
+
+    fetch("/api/friends")
+      .then((r) => r.json())
+      .then((d) => { if (d.friends) setFriends(d.friends); })
       .catch(() => {});
   }, [status, router]);
 
@@ -196,6 +208,39 @@ export default function SettingsPage() {
 
   function removeBlockedKeyword(kw: string) {
     setBlockedKeywords((prev) => prev.filter((k) => k !== kw));
+  }
+
+  async function addFriend() {
+    const email = friendEmailInput.trim().toLowerCase();
+    if (!email) return;
+    setAddingFriend(true);
+    setFriendError(null);
+    setFriendSuccess(null);
+    try {
+      const res = await fetch("/api/friends", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFriendError(data.error ?? "Failed to add friend");
+      } else {
+        setFriends((prev) => [...prev, data.friend]);
+        setFriendEmailInput("");
+        setFriendSuccess(`${data.friend.name ?? data.friend.email} added!`);
+        setTimeout(() => setFriendSuccess(null), 3000);
+      }
+    } catch {
+      setFriendError("Something went wrong");
+    } finally {
+      setAddingFriend(false);
+    }
+  }
+
+  async function removeFriend(friendId: string) {
+    await fetch(`/api/friends/${friendId}`, { method: "DELETE" });
+    setFriends((prev) => prev.filter((f) => f.id !== friendId));
   }
 
   const saveLabel = saving ? "Saving…" : saved ? "Saved ✓" : "Save preferences";
@@ -645,6 +690,92 @@ export default function SettingsPage() {
             >
               {saveLabel}
             </button>
+          </div>
+        </section>
+
+        {/* ── Friends ───────────────────────────────────────────────────────── */}
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <h3 className="text-2xl font-headline font-bold">Friends</h3>
+            <p className="text-on-surface-variant max-w-xl">
+              When you and a friend both save the same event, you&apos;ll see a match notification and confetti celebration.
+            </p>
+          </div>
+          <div className="bg-surface-container-low rounded-xl p-8 space-y-6">
+
+            {/* Current friends list */}
+            {friends.length > 0 && (
+              <div className="space-y-3">
+                {friends.map((friend) => {
+                  const initials = friend.name
+                    ?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "?";
+                  return (
+                    <div key={friend.id} className="flex items-center gap-3 p-3 bg-surface-container-lowest rounded-xl">
+                      <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden bg-primary-container/30 flex items-center justify-center">
+                        {friend.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={friend.image} alt={friend.name ?? ""} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[13px] font-headline font-bold text-primary">{initials}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-headline font-semibold text-on-surface truncate">
+                          {friend.name ?? friend.email}
+                        </p>
+                        <p className="text-[12px] text-on-surface-variant truncate">{friend.email}</p>
+                      </div>
+                      <button
+                        onClick={() => removeFriend(friend.id)}
+                        className="text-on-surface-variant hover:text-error transition-colors flex-shrink-0"
+                        title="Remove friend"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">person_remove</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {friends.length === 0 && (
+              <p className="text-[13px] text-on-surface-variant/60 italic">
+                No friends added yet. Enter their email address below to connect.
+              </p>
+            )}
+
+            {/* Add friend by email */}
+            <div className="space-y-3">
+              <label className="text-sm font-headline font-bold uppercase tracking-widest text-on-surface-variant">
+                Add a friend
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={friendEmailInput}
+                  onChange={(e) => { setFriendEmailInput(e.target.value); setFriendError(null); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addFriend(); } }}
+                  placeholder="friend@email.com"
+                  className="flex-1 bg-surface-container border-none rounded-full px-5 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary/20 outline-none"
+                  disabled={addingFriend}
+                />
+                <button
+                  type="button"
+                  onClick={addFriend}
+                  disabled={addingFriend || !friendEmailInput.trim()}
+                  className="px-5 py-3 rounded-full bg-primary text-on-primary text-sm font-headline font-bold hover:opacity-90 transition-opacity disabled:opacity-50 active:scale-95 duration-200 flex-shrink-0"
+                >
+                  {addingFriend ? "Adding…" : "Add"}
+                </button>
+              </div>
+
+              {friendError && (
+                <p className="text-[12px] text-error font-headline">{friendError}</p>
+              )}
+              {friendSuccess && (
+                <p className="text-[12px] text-[#3B6D11] font-headline font-bold">{friendSuccess}</p>
+              )}
+            </div>
           </div>
         </section>
 

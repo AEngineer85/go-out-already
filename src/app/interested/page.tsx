@@ -7,6 +7,11 @@ import Link from "next/link";
 import { InterestedEventCard } from "@/components/InterestedEventCard";
 import { AddToCalendarModal } from "@/components/AddToCalendarModal";
 
+interface FriendMatch {
+  name: string | null;
+  image: string | null;
+}
+
 interface InterestedEvent {
   id: string;
   title: string;
@@ -20,6 +25,7 @@ interface InterestedEvent {
   additionalSources?: { sourceName: string }[] | null;
   addedToCalendar: boolean;
   crawledAt: string;
+  friendMatches?: FriendMatch[];
 }
 
 export default function InterestedPage() {

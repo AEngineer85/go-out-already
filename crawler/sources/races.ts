@@ -57,6 +57,53 @@ const KNOWN_MAJOR_RACES: RawEvent[] = [
     sourceUrl: "https://capitalcityhalfmarathon.com",
     sourceName: "Capital City Half Marathon",
   },
+  // ── Memorial Tournament (PGA Tour) at Muirfield Village ──────────────────
+  // Held annually in late May / early June in Dublin, OH.
+  // 2026 dates: May 28–31 — verify each year at memorial.org or pgatour.com
+  {
+    title: "Memorial Tournament presented by Workday — Round 1",
+    description:
+      "PGA Tour's Memorial Tournament at Muirfield Village Golf Club, one of golf's most prestigious events. Round 1 (Thursday).",
+    date: "2026-05-28",
+    startTime: "08:00",
+    locationName: "Muirfield Village Golf Club",
+    address: "5750 Memorial Dr, Dublin, OH 43017",
+    sourceUrl: "https://www.memorial.org",
+    sourceName: "Memorial Tournament",
+  },
+  {
+    title: "Memorial Tournament presented by Workday — Round 2",
+    description:
+      "PGA Tour's Memorial Tournament at Muirfield Village Golf Club. Round 2 (Friday).",
+    date: "2026-05-29",
+    startTime: "08:00",
+    locationName: "Muirfield Village Golf Club",
+    address: "5750 Memorial Dr, Dublin, OH 43017",
+    sourceUrl: "https://www.memorial.org",
+    sourceName: "Memorial Tournament",
+  },
+  {
+    title: "Memorial Tournament presented by Workday — Round 3",
+    description:
+      "PGA Tour's Memorial Tournament at Muirfield Village Golf Club. Round 3 (Saturday).",
+    date: "2026-05-30",
+    startTime: "08:00",
+    locationName: "Muirfield Village Golf Club",
+    address: "5750 Memorial Dr, Dublin, OH 43017",
+    sourceUrl: "https://www.memorial.org",
+    sourceName: "Memorial Tournament",
+  },
+  {
+    title: "Memorial Tournament presented by Workday — Final Round",
+    description:
+      "PGA Tour's Memorial Tournament at Muirfield Village Golf Club. Final Round (Sunday). Hosted by Jack Nicklaus.",
+    date: "2026-05-31",
+    startTime: "10:00",
+    locationName: "Muirfield Village Golf Club",
+    address: "5750 Memorial Dr, Dublin, OH 43017",
+    sourceUrl: "https://www.memorial.org",
+    sourceName: "Memorial Tournament",
+  },
 ].filter((r) => {
   const d = new Date(r.date);
   return d >= now && d <= sixMonthsOut;

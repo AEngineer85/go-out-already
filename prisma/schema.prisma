@@ -11,6 +11,8 @@ model User {
   id                     String   @id @default(uuid())
   googleId               String   @unique
   email                  String   @unique
+  name                   String?
+  image                  String?
   refreshToken           String?
   defaultRadiusMiles     Int      @default(25)
   defaultReminderMinutes Int      @default(1440)
@@ -33,9 +35,11 @@ model User {
   favoriteKeywords    String[]
   blockedKeywords     String[]
 
-  swipeActions      SwipeAction[]
-  tagPreferences    UserTagPreference[]
-  sourcePreferences UserSourcePreference[]
+  swipeActions        SwipeAction[]
+  tagPreferences      UserTagPreference[]
+  sourcePreferences   UserSourcePreference[]
+  friendshipsAsUser   Friendship[] @relation("UserFriendships")
+  friendshipsAsFriend Friendship[] @relation("FriendFriendships")
 }
 
 model Event {
@@ -109,6 +113,22 @@ model UserTagPreference {
 
   @@unique([userId, tag])
   @@index([userId])
+}
+
+// Bidirectional friend connections. When A adds B, two rows are created:
+// (A→B) and (B→A). Querying WHERE userId = X returns all of X's friends.
+model Friendship {
+  id        String   @id @default(uuid())
+  userId    String
+  friendId  String
+  createdAt DateTime @default(now())
+
+  user   User @relation("UserFriendships", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendFriendships", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
 }
 
 // Per-user learned weight for each event source (team, venue, org name).

@@ -76,6 +76,8 @@ export const VENUE_LIST: VenueConfig[] = [
   // ── Suburban Cities ───────────────────────────────────────────────────────
   // Cities that block crawlers (403) are removed; they are covered by ICS feeds instead.
   { url: "https://www.visitdublinohio.com/events/", name: "Visit Dublin Ohio", category: "community" },
+  // Bridge Park — mixed-use development in Dublin with frequent events (markets, concerts, etc.)
+  { url: "https://www.bridgepark.com/events/", name: "Bridge Park Dublin", category: "community" },
   { url: "https://www.hilliardohio.gov/events", name: "City of Hilliard", category: "community" },
   { url: "https://www.visitgahanna.com/Events/", name: "Visit Gahanna", category: "community" },
   { url: "https://visitgrovecity.com/events/", name: "Visit Grove City", category: "community" },

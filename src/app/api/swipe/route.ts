@@ -99,8 +99,36 @@ export async function POST(request: NextRequest) {
     return action;
   });
 
+  // Check for mutual match: did any of this user's friends also right-swipe this event?
+  let mutualMatch = false;
+  let matchedFriends: { name: string | null; image: string | null }[] = [];
+
+  if (direction === "right") {
+    const friendships = await prisma.friendship.findMany({
+      where: { userId: user.id },
+      select: { friendId: true },
+    });
+    const friendIds = friendships.map((f) => f.friendId);
+
+    if (friendIds.length > 0) {
+      const friendSwipes = await prisma.swipeAction.findMany({
+        where: { eventId, direction: "right", userId: { in: friendIds } },
+        include: { user: { select: { name: true, image: true } } },
+      });
+      if (friendSwipes.length > 0) {
+        mutualMatch = true;
+        matchedFriends = friendSwipes.map((s) => ({
+          name: s.user.name,
+          image: s.user.image,
+        }));
+      }
+    }
+  }
+
   return NextResponse.json({
     swipeId: swipeAction.id,
     direction: swipeAction.direction,
+    mutualMatch,
+    matchedFriends,
   });
 }
