@@ -51,7 +51,7 @@ cd crawler && DATABASE_URL="..." npx ts-node --project tsconfig.json src/backfil
 | Geocoding | Photon (Komoot/OSM) | Free, no key |
 | Email alerts | Nodemailer + Gmail SMTP | Free |
 | Calendar | Google Calendar API v3 | Free |
-| Animation | framer-motion v11 | — |
+| Animation | framer-motion v11, canvas-confetti | — |
 | Scheduler | Render Cron Job | Nightly 2:00 AM ET |
 
 ## Event Sources
@@ -59,8 +59,8 @@ cd crawler && DATABASE_URL="..." npx ts-node --project tsconfig.json src/backfil
 - **ICS Feeds** (~20 sources): Columbus Rec & Parks, Metro Parks, COSI, Columbus Symphony, Short North, Shadowbox Live, city calendars, Columbus Clippers, and more
 - **RSS Feeds**: Local news and media sites
 - **Sports APIs**: Columbus Clippers (MiLB), Blue Jackets (NHL), Columbus Crew, Ohio State
-- **Races**: RunSignUp, OhioRaces.com (Columbus Marathon scraper removed — covered by ICS)
-- **Schema.org Venue Scraper**: 50+ curated Central Ohio venues — farms, music, arts, community, outdoor, food, suburban city sites
+- **Races**: RunSignUp, OhioRaces.com; **known major events** hardcoded: Columbus Marathon, Capital City Half, Memorial Tournament (PGA Tour, Muirfield Village Golf Club, Dublin OH — rounds 1–4, late May/early June)
+- **Schema.org Venue Scraper**: 50+ curated Central Ohio venues — farms, music, arts, community, outdoor, food, suburban city sites (includes Bridge Park Dublin, Visit Dublin Ohio)
 - **Henmick Farm & Brewery**: Custom Squarespace HTML scraper (live music + special events, Delaware OH)
 - **Alum Creek Marina**: Custom Weebly HTML scraper (live music events, Sunbury OH)
 - **Ohio DNR**: Undocumented ODNR search API — filters ~2000 statewide events to Central Ohio parks (Alum Creek, Hocking Hills, Delaware State Park, etc.)
@@ -89,8 +89,15 @@ A Tinder-style card swipe interface for rapid event discovery:
 - **Cold start**: first 5 swipes use global `relevanceScore` for ordering; then personal weights take over
 - **"Hide archived" toggle** on the main list view hides left-swiped events (authenticated users only)
 
+### Friends
+- Add friends by email address in **Settings → Friends**
+- When you and a friend both swipe right on the same event: confetti animation + "🎉 You and [friend] both saved this!" toast
+- Saved Events page shows a match badge on any event a friend also saved
+- Friendship is bidirectional — adding by email connects both accounts instantly
+
 ### Saved Events (`/interested`)
 - Lists all right-swiped events, most recently saved first
+- Friend match badges show which friends saved the same event
 - Multi-select + bulk Add to Google Calendar (reuses existing calendar flow)
 
 ## Deployment
