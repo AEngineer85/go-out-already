@@ -73,6 +73,38 @@ export async function runCrawl(): Promise<{
     data: { startedAt: new Date() },
   });
 
+  // Ensure the CrawlLog is always finalized even if the process crashes mid-run.
+  // Without this, an OOM or unhandled exception leaves completedAt=null which
+  // the UI incorrectly shows as "Failed" indefinitely.
+  let fatalError: Error | null = null;
+  try {
+    return await _runCrawlInner(crawlLog.id);
+  } catch (err) {
+    fatalError = err instanceof Error ? err : new Error(String(err));
+    throw err;
+  } finally {
+    if (fatalError) {
+      await prisma.crawlLog.update({
+        where: { id: crawlLog.id },
+        data: {
+          completedAt: new Date(),
+          success: false,
+          errors: [`Fatal: ${fatalError.message}`],
+        },
+      }).catch(() => {/* ignore — DB may also be unavailable */});
+    }
+  }
+}
+
+async function _runCrawlInner(crawlLogId: string): Promise<{
+  eventsFound: number;
+  eventsNew: number;
+  sourcesTotal: number;
+  sourcesSuccess: number;
+  errors: string[];
+}> {
+  const crawlLog = { id: crawlLogId };
+
   const sources: SourceResult[] = [];
 
   // Run all sources (sequential to avoid rate limits)

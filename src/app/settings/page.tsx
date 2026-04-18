@@ -98,11 +98,14 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [triggering, setTriggering] = useState(false);
+  const [crawlRunning, setCrawlRunning] = useState(false);
   const [lastCrawl, setLastCrawl] = useState<{
     startedAt: string;
     eventsNew: number;
     success: boolean;
+    isRunning?: boolean;
   } | null>(null);
+  const crawlPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const keywordInputRef = useRef<HTMLInputElement>(null);
 
@@ -134,7 +137,12 @@ export default function SettingsPage() {
 
     fetch("/api/crawl/status")
       .then((r) => r.json())
-      .then((d) => { if (d && !d.error) setLastCrawl(d); })
+      .then((d) => {
+        if (d && !d.error) {
+          setLastCrawl(d);
+          if (d.isRunning) setCrawlRunning(true);
+        }
+      })
       .catch(() => {});
 
     fetch("/api/friends")
@@ -171,17 +179,31 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  // Poll crawl status until the running crawl completes (or times out after 30min)
+  function startCrawlPoll() {
+    if (crawlPollRef.current) clearInterval(crawlPollRef.current);
+    setCrawlRunning(true);
+    const deadline = Date.now() + 30 * 60 * 1000;
+    crawlPollRef.current = setInterval(async () => {
+      try {
+        const d = await fetch("/api/crawl/status").then((r) => r.json());
+        if (d && !d.error) setLastCrawl(d);
+        if (!d?.isRunning || Date.now() > deadline) {
+          setCrawlRunning(false);
+          if (crawlPollRef.current) clearInterval(crawlPollRef.current);
+        }
+      } catch { /* ignore */ }
+    }, 15000); // check every 15s
+  }
+
   const handleTriggerCrawl = async () => {
     setTriggering(true);
-    await fetch("/api/crawl/trigger", { method: "POST" });
-    // Refresh crawl status after a short delay
-    setTimeout(() => {
-      fetch("/api/crawl/status")
-        .then((r) => r.json())
-        .then((d) => { if (d && !d.error) setLastCrawl(d); })
-        .catch(() => {});
+    try {
+      await fetch("/api/crawl/trigger", { method: "POST" });
+      startCrawlPoll();
+    } catch { /* ignore */ } finally {
       setTriggering(false);
-    }, 2000);
+    }
   };
 
   function addKeyword(kw: string) {
@@ -790,7 +812,19 @@ export default function SettingsPage() {
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative z-10">
               <div className="space-y-4">
-                {lastCrawl ? (
+                {crawlRunning ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
+                      <span className="font-headline font-bold uppercase tracking-widest text-sm text-primary">
+                        Running…
+                      </span>
+                    </div>
+                    <p className="text-on-surface-variant text-sm">
+                      Crawl in progress — typically takes 10–12 minutes. Status updates every 15s.
+                    </p>
+                  </>
+                ) : lastCrawl ? (
                   <>
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full animate-pulse ${
@@ -822,11 +856,11 @@ export default function SettingsPage() {
 
               <button
                 onClick={handleTriggerCrawl}
-                disabled={triggering}
+                disabled={triggering || crawlRunning}
                 className="px-8 py-4 rounded-full bg-on-surface text-surface-container-lowest font-headline font-bold flex items-center gap-2 hover:bg-primary transition-colors disabled:opacity-50 active:scale-95 duration-200 flex-shrink-0"
               >
-                <span className={`material-symbols-outlined ${triggering ? "animate-spin" : ""}`}>refresh</span>
-                {triggering ? "Triggering…" : "Trigger manual crawl"}
+                <span className={`material-symbols-outlined ${triggering || crawlRunning ? "animate-spin" : ""}`}>refresh</span>
+                {triggering ? "Triggering…" : crawlRunning ? "Running…" : "Trigger manual crawl"}
               </button>
             </div>
           </div>

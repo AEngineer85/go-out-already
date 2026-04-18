@@ -48,10 +48,11 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Only return upcoming/today's events — past events drop off automatically
+  // Only return upcoming/today's events, sorted chronologically
   const events = actions
     .map((a) => a.event)
-    .filter((e) => new Date(e.date) >= today);
+    .filter((e) => new Date(e.date) >= today)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   // Load friend matches: for each event, find which friends also right-swiped it
   const friendships = await prisma.friendship.findMany({
