@@ -2,7 +2,7 @@
 
 > Central Ohio events, all in one place.
 
-A personal web app that automatically crawls the internet nightly for local events across the Central Ohio region, presents them in a responsive filterable interface, and enables bulk-adding selected events to Google Calendar.
+A personal web app that automatically crawls the internet every 3 days for local events across the Central Ohio region, presents them in a responsive filterable interface, and enables bulk-adding selected events to Google Calendar.
 
 **Live:** https://go-out-already.vercel.app
 
@@ -52,7 +52,7 @@ cd crawler && DATABASE_URL="..." npx ts-node --project tsconfig.json src/backfil
 | Email alerts | Nodemailer + Gmail SMTP | Free |
 | Calendar | Google Calendar API v3 | Free |
 | Animation | framer-motion v11, canvas-confetti | — |
-| Scheduler | Render Cron Job | Nightly 2:00 AM ET |
+| Scheduler | Render Cron Job | Every 3 days, 2:00 AM ET |
 
 ## Event Sources
 

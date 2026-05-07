@@ -29,7 +29,7 @@
 
 ## 1. Product Overview
 
-Go Out Already is a personal web application that automatically crawls the internet nightly for local events across a target region, presents them in a responsive filterable interface, and enables the user to bulk-add selected events to their Google Calendar — with built-in duplicate prevention and configurable reminders.
+Go Out Already is a personal web application that automatically crawls the internet every 3 days for local events across a target region, presents them in a responsive filterable interface, and enables the user to bulk-add selected events to their Google Calendar — with built-in duplicate prevention and configurable reminders.
 
 The app solves a genuine pain point: local events are scattered across dozens of sources (parks departments, race calendars, community orgs, local newspapers, small venue websites) with no single aggregator that does it well. Go Out Already is that aggregator.
 
@@ -40,7 +40,7 @@ The initial deployment targets Central Ohio. The architecture is designed to be 
 - Surface local events across a target region in one place, automatically
 - Intelligently categorize events with a multi-tag taxonomy for easy filtering
 - Enable frictionless Google Calendar integration with duplicate prevention
-- Run autonomously — nightly crawls with failure alerts only when needed
+- Run autonomously — crawls every 3 days with failure alerts only when needed
 - Zero recurring cost — built entirely on free/open-source tooling and free hosting tiers
 
 ### 1.2 Non-Goals (v1)
@@ -188,7 +188,7 @@ Go Out Already is designed as a single-user personal tool authenticated via Goog
 
 ### 4.1 Schedule
 
-A nightly cron job runs at 2:00 AM Eastern Time, configured as a Render Cron Job that calls `POST /run` on the crawler service. No external scheduling service required.
+A cron job runs every 3 days at 2:00 AM Eastern Time, configured as a Render Cron Job that calls `POST /run` on the crawler service. No external scheduling service required.
 
 ### 4.2 Geographic Scope (Central Ohio)
 
@@ -272,7 +272,7 @@ Events discovered from multiple sources are fingerprinted via SHA-256 hash of: `
 
 ### 4.6 Failure Alerting
 
-If a nightly crawl completes with zero events, or throws an unhandled top-level error, the system sends an alert email via Nodemailer + Gmail SMTP. No alert is sent on a successful crawl. Alert includes: timestamp, sources attempted vs. succeeded, error messages, and event count.
+If a crawl completes with zero events, or throws an unhandled top-level error, the system sends an alert email via Nodemailer + Gmail SMTP. No alert is sent on a successful crawl. Alert includes: timestamp, sources attempted vs. succeeded, error messages, and event count.
 
 ---
 
@@ -456,7 +456,7 @@ Built with Next.js 14 (App Router), TypeScript, Tailwind CSS. Authentication via
 | RSS Ingestion | rss-parser | Crawler service on Render |
 | Sports APIs | MiLB Stats API, NHL API | Free, no key required |
 | Crawler Service | Node.js (Express) + ts-node | Render — free tier |
-| Job Scheduler | Render Cron Job | Nightly 2:00 AM ET |
+| Job Scheduler | Render Cron Job | Every 3 days, 2:00 AM ET |
 | Email Alerts | Nodemailer + Gmail SMTP | Free; Gmail App Password |
 | Calendar API | Google Calendar API v3 | Free; via OAuth tokens |
 | Geocoding | Nominatim (OpenStreetMap) | Free, no API key |
@@ -481,7 +481,7 @@ Built with Next.js 14 (App Router), TypeScript, Tailwind CSS. Authentication via
 │                        Render                           │
 │  Crawler Service (Node.js)                              │
 │  URL: https://go-out-already.onrender.com               │
-│  Cron: POST /run nightly at 2:00 AM ET                  │
+│  Cron: POST /run every 3 days at 2:00 AM ET              │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -802,8 +802,8 @@ Visit `http://localhost:3000`, click Sign In, and authenticate with your Google 
 1. In Render dashboard, go to your crawler service
 2. Click **Cron Jobs** (in the left sidebar) → **New Cron Job**
 3. Configure:
-   - **Name:** nightly-crawl
-   - **Schedule:** `0 7 * * *` (7:00 AM UTC = 2:00 AM ET; adjust for daylight saving)
+   - **Name:** crawl-every-3-days
+   - **Schedule:** `0 7 */3 * *` (7:00 AM UTC = 2:00 AM ET, every 3 days; adjust for daylight saving)
    - **Command:** `curl -X POST https://go-out-already.onrender.com/run -H "x-crawl-secret: [your CRAWL_SECRET]"`
 
 Alternatively, trigger manually from the Settings page in the app.
